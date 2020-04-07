@@ -81,6 +81,21 @@ namespace SIFT
             {
                 GL.UseProgram(id); CheckError();
             }
+            public int GetUniformLocation(string name)
+            {
+                int location = GL.GetUniformLocation(id, name);CheckError();
+                return location;
+            }
+            #region Uniform
+            public void Uniform(int location, uint x)
+            {
+                GL.Uniform1(location, x); CheckError();
+            }
+            public void Uniform(int location, int x)
+            {
+                GL.Uniform1(location, x); CheckError();
+            }
+            #endregion
             public void Delete()
             {
                 GL.DeleteProgram(id);CheckError();
@@ -122,23 +137,16 @@ namespace SIFT
                 GL.CreateBuffers(1, out int i);
                 id = i; CheckError();
             }
-            #region Data
-            //public void Data(int num_bytes,IntPtr data,BufferUsageHint usage)
-            //{
-            //    GL.NamedBufferData(id, num_bytes, data, usage); CheckError();
-            //}
+
+            public void Data(int num_bytes, BufferUsageHint usage)
+            {
+                GL.NamedBufferData(id, num_bytes, IntPtr.Zero, usage);CheckError();
+            }
             // byte, char, double, float, int, long, short
             public void Data<T>(T[] data, BufferUsageHint usage)where T:struct
             {
                 GL.NamedBufferData<T>(id, Marshal.SizeOf(typeof(T)) * data.Length, data, usage);CheckError();
-                //int num_bytes = sizeof(byte) * data.Length;
-                //IntPtr unmanagedPointer = Marshal.AllocHGlobal(num_bytes);
-                //Marshal.Copy(data, 0, unmanagedPointer, data.Length);
-                //// Call unmanaged code
-                //Data(num_bytes, unmanagedPointer, usage);
-                //Marshal.FreeHGlobal(unmanagedPointer);
             }
-            #endregion
             public void SubData<T>(int offset, T[] data) where T : struct
             {
                 int u = Marshal.SizeOf(typeof(T));

@@ -11,6 +11,6 @@ uniform sampler2DRect RenderedTexture;
 
 void main()
 {
-	ivec2 sz = textureSize(RenderedTexture);
+	const ivec2 sz = textureSize(RenderedTexture);
 	color = texture(RenderedTexture, vec2(UV.x*sz.x,UV.y*sz.y));
 }

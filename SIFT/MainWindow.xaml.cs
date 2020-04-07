@@ -23,9 +23,9 @@ namespace SIFT
         public MainWindow()
         {
             this.Loaded += MainWindow_Initialized;
-            Console.WriteLine(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames().Length);
-            Console.WriteLine(string.Join("\n", System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames()));
-            Console.WriteLine(IO.ReadResource("SIFT.shaders.example_vertex_shader.glsl"));
+            //Console.WriteLine(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames().Length);
+            //Console.WriteLine(string.Join("\n", System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames()));
+            //Console.WriteLine(IO.ReadResource("SIFT.shaders.example_vertex_shader.glsl"));
             //Console.WriteLine(IO.ReadResource("example_vertex_shader.glsl"));
         }
 

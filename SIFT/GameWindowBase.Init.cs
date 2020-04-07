@@ -40,6 +40,12 @@ namespace SIFT
             4, 6, GraphicsContextFlags.ForwardCompatible)
         {
             Console.WriteLine("gl version: " + GL.GetString(StringName.Version));
+            texture_program = new MyGL.Program(
+                new MyGL.Shader(ShaderType.VertexShader, IO.ReadResource("SIFT.shaders.example_vertex_shader.glsl")),
+                new MyGL.Shader(ShaderType.FragmentShader, IO.ReadResource("SIFT.shaders.example_fragment_shader.glsl")));
+            InitFBO();
+            CreateVertexArrayObject();
+            Canvas = new GPUImage(this.Width, this.Height);
         }
         protected override void OnResize(EventArgs e)
         {
@@ -48,18 +54,9 @@ namespace SIFT
         protected override void OnLoad(EventArgs e)
         {
             // this is called when the window starts running
-            texture_program = new MyGL.Program(
-                new MyGL.Shader(ShaderType.VertexShader, IO.ReadResource("SIFT.shaders.example_vertex_shader.glsl")),
-                new MyGL.Shader(ShaderType.FragmentShader, IO.ReadResource("SIFT.shaders.example_fragment_shader.glsl")));
-            Console.WriteLine("success");
-            InitFBO();
-            CreateVertexArrayObject();
-            Canvas = new GPUImage(this.Width, this.Height);
-            Init();
         }
         protected abstract void Update(double secs);
         protected abstract void Render(double secs);
-        protected abstract void Init();
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             // this is called every frame, put game logic here

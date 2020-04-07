@@ -11,10 +11,10 @@ namespace SIFT
 {
     abstract partial class GameWindowBase : OpenTK.GameWindow
     {
-        private class ComputeShader
+        protected abstract class ShaderBase
         {
             private MyGL.Program program;
-            public ComputeShader(string source_name,int group_size_x,int group_size_y,int group_size_z)
+            protected ShaderBase(string source_name,int group_size_x,int group_size_y,int group_size_z)
             {
                 string source = IO.ReadResource(source_name);
                 // inject code
@@ -30,34 +30,33 @@ namespace SIFT
                 GL.DispatchCompute(group_count_x, group_count_y, group_count_z);
                 GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
             }
-            ~ComputeShader() { program.Delete(); }
+            public void Uniform(string name, uint x) { program.Use(); program.Uniform(program.GetUniformLocation(name), x); }
+            public void Uniform(string name, int x) { program.Use(); program.Uniform(program.GetUniformLocation(name), x); }
+            ~ShaderBase() { program.Delete(); }
         }
-        protected class Shader1D
+        protected class Shader:ShaderBase
         {
             const int default_group_size_x = 64;
-            ComputeShader shader;
-            public Shader1D(string source_name)
+            public Shader(string source_name, Action<Shader> init_action = null):base(source_name, default_group_size_x, 1, 1)
             {
-                shader = new ComputeShader(source_name, default_group_size_x, 1, 1);
+                init_action?.Invoke(this);
             }
             public void Run(int n)
             {
-                shader.Run((n + default_group_size_x - 1) / default_group_size_x, 1, 1);
+                Run((n + default_group_size_x - 1) / default_group_size_x, 1, 1);
             }
         }
-        protected class Shader2D
+        protected class Shader2D:ShaderBase
         {
             const int default_group_size_x = 8;
             const int default_group_size_y = 8;
-            ComputeShader shader;
-            public Shader2D(string source_name)
+            public Shader2D(string source_name, Action<Shader2D> init_action = null) :base(source_name, default_group_size_x, default_group_size_y, 1)
             {
-                shader = new ComputeShader(source_name, default_group_size_x, default_group_size_y, 1);
+                init_action?.Invoke(this);
             }
             public void Run(int n,int m)
             {
-                shader.Run(
-                    (n + default_group_size_x - 1) / default_group_size_x,
+                Run((n + default_group_size_x - 1) / default_group_size_x,
                     (m + default_group_size_y - 1) / default_group_size_y, 
                     1);
             }
@@ -80,16 +79,21 @@ namespace SIFT
         {
             void Bind(int location);
         }
-        protected class GPUArray<T>:GPUArray where T:struct
+        protected class GPUArray<T>: GPUArray where T:struct
         {
-            public int Count { get; private set; } = 0;
+            public int Length { get; private set; } = 0;
             private MyGL.Buffer buffer = new MyGL.Buffer();
             public GPUArray() { }
+            public GPUArray(int length)
+            {
+                buffer.Data(System.Runtime.InteropServices.Marshal.SizeOf(typeof(T)) * length, BufferUsageHint.StreamDraw);
+                Length = length;
+            }
             public GPUArray(T[] data) { ReplaceWith(data); }
             public void ReplaceWith(T[] data)
             {
                 buffer.Data(data, BufferUsageHint.StreamDraw);
-                Count = data.Length;
+                Length = data.Length;
             }
             public void Mute(int offset, T[] data)
             {
@@ -101,7 +105,7 @@ namespace SIFT
             }
             public T[] ToArray()
             {
-                return buffer.GetSubData<T>(0, Count);
+                return buffer.GetSubData<T>(0, Length);
             }
             public void Bind(int location)
             {

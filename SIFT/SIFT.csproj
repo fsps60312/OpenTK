@@ -111,6 +111,13 @@
     <EmbeddedResource Include="shaders\example_vertex_shader.glsl" />
     <EmbeddedResource Include="shaders\plain_color.glsl" />
     <EmbeddedResource Include="shaders\example_compute_shader.glsl" />
+    <EmbeddedResource Include="shaders\elementwise_sum.glsl" />
+    <EmbeddedResource Include="shaders\reduction_sum.glsl" />
+    <EmbeddedResource Include="shaders\shuffle.glsl" />
+    <EmbeddedResource Include="shaders\fill_random.glsl" />
+    <EmbeddedResource Include="shaders\bitonic_sort.glsl" />
+    <EmbeddedResource Include="shaders\fill_range.glsl" />
+    <EmbeddedResource Include="shaders\fill_number.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
