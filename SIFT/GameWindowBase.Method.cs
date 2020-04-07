@@ -9,7 +9,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace SIFT
 {
-    abstract partial class GameWindowBase : OpenTK.GameWindow
+    abstract partial class GameWindowBase
     {
         protected TimeSpan Timing(Action action)
         {

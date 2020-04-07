@@ -9,7 +9,39 @@ using OpenTK.Graphics.OpenGL;
 
 namespace SIFT
 {
-    abstract partial class GameWindowBase : OpenTK.GameWindow
+    abstract class WrapperVirtualWindow
+    {
+        class ActualWindow : OpenTK.GameWindow
+        {
+            public ActualWindow() { }
+        }
+        ActualWindow actual_window = new ActualWindow();
+        protected WrapperVirtualWindow(int width, int height, GraphicsMode mode, string title, GameWindowFlags options, DisplayDevice device, int major, int minor, GraphicsContextFlags flags)
+        {
+            actual_window.Resize += (o, e) => OnResize(e);
+            actual_window.Load += (o, e) => OnLoad(e);
+            actual_window.UpdateFrame += (o, e) => OnUpdateFrame(e);
+            actual_window.RenderFrame += (o, e) => OnRenderFrame(e);
+        }
+
+        protected abstract void OnResize(EventArgs e);
+        protected abstract void OnLoad(EventArgs e);
+        protected abstract void OnUpdateFrame(FrameEventArgs e);
+        protected abstract void OnRenderFrame(FrameEventArgs e);
+        protected void SwapBuffers() { actual_window.SwapBuffers(); }
+        public void Run(double updates_per_second, double frames_per_second) { actual_window.Run(updates_per_second, frames_per_second); }
+        public int Width
+        {
+            get { return actual_window.Width; }
+            set { actual_window.Width = value; }
+        }
+        public int Height
+        {
+            get { return actual_window.Height; }
+            set { actual_window.Height = value; }
+        }
+    }
+    abstract partial class GameWindowBase:WrapperVirtualWindow // : OpenTK.GameWindow
     {
         private MyGL.Buffer window_vertex_buffer;
         private MyGL.Program texture_program;

@@ -9,7 +9,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace SIFT
 {
-    abstract partial class GameWindowBase : OpenTK.GameWindow
+    abstract partial class GameWindowBase
     {
         protected Random Rand { get; private set; } = new Random();
         protected abstract class ShaderBase
