@@ -9,35 +9,84 @@ using OpenTK.Graphics.OpenGL;
 
 namespace SIFT
 {
-    class GameWindow:GameWindowBase
+    class GameWindow : OpenTK.GameWindow
     {
+        private MyGL.Buffer window_vertex_buffer;
+        private MyGL.Program texture_program;
+        public GPUImage Canvas { get; private set; }
+        Game game;
+        private void InitFBO()
+        {
+            float[] g_window_vertex_buffer_data = new[]{
+                -1.0f, -1.0f,
+                 1.0f, -1.0f,
+                -1.0f,  1.0f,
+                -1.0f,  1.0f,
+                 1.0f, -1.0f,
+                 1.0f,  1.0f,
+            };
+            window_vertex_buffer = new MyGL.Buffer();
+            window_vertex_buffer.Data(g_window_vertex_buffer_data, BufferUsageHint.StaticDraw);
+        }
+        private void CreateVertexArrayObject()
+        {
+            int id = MyGL.CheckError(()=> GL.GenVertexArray());
+            MyGL.CheckError(() => GL.BindVertexArray(id));
+        }
         public GameWindow()
+            // set window resolution, title, and default behaviour
+            : base(1280, 720, GraphicsMode.Default, "OpenTK Intro",
+            GameWindowFlags.Default, DisplayDevice.Default,
+            // ask for an OpenGL 3.0 forward compatible context
+            4, 6, GraphicsContextFlags.ForwardCompatible)
         {
-            GPUArray<int> h = new GPUArray<int>(100000000);
-            Param.Image(Canvas); new Shader2D("SIFT.shaders.plain_color.glsl").Run(this.Width, this.Height);
-            for (int i = 0; i < 100; i++)
-            {
-                h.Value(0);
-                MyGL.AssertError();
-                Console.WriteLine(h.Contains(1));
-                MyGL.AssertError();
-                h[99999999] = 1;
-                MyGL.AssertError();
-                Console.WriteLine(h.Contains(1));
-                MyGL.AssertError();
-                h[99999999] = 0;
-                MyGL.AssertError();
-                Console.WriteLine(h.Contains(1));
-                MyGL.AssertError();
-                Console.WriteLine(h.Contains(0));
-                MyGL.AssertError();
-            }
+            Console.WriteLine("gl version: " + GL.GetString(StringName.Version));
+            texture_program = new MyGL.Program(
+                new MyGL.Shader(ShaderType.VertexShader, IO.ReadResource("SIFT.shaders.example_vertex_shader.glsl")),
+                new MyGL.Shader(ShaderType.FragmentShader, IO.ReadResource("SIFT.shaders.example_fragment_shader.glsl")));
+            InitFBO();
+            CreateVertexArrayObject();
+            Canvas = new GPUImage(this.Width, this.Height);
+            game = new Game(this);
         }
-        protected override void Update(double secs)
+        protected override void OnResize(EventArgs e)
         {
+            MyGL.CheckError(() => GL.Viewport(0, 0, this.Width, this.Height));
         }
-        protected override void Render(double secs)
+        protected override void OnLoad(EventArgs e)
         {
+            // this is called when the window starts running
+        }
+        public delegate void DoubleHandler(double secs);
+        public event DoubleHandler Update, Render;
+        protected override void OnUpdateFrame(FrameEventArgs e)
+        {
+            // this is called every frame, put game logic here
+            Update?.Invoke(e.Time);
+        }
+        protected override void OnRenderFrame(FrameEventArgs e)
+        {
+            MyGL.Shader.GC();
+            MyGL.Program.GC();
+            MyGL.Buffer.GC();
+            MyGL.Texture.GC();
+            MyGL.CheckError(() => GL.ClearColor(Color4.Purple));
+            MyGL.CheckError(() => GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+
+            //RunShaders();
+            Render?.Invoke(e.Time);
+
+            texture_program.Use();
+            int index = 0; // same as "location" in vertex shader
+            MyGL.CheckError(() => GL.EnableVertexAttribArray(index));
+            window_vertex_buffer.Bind(BufferTarget.ArrayBuffer);
+            MyGL.CheckError(() => GL.VertexAttribPointer(index, 2, VertexAttribPointerType.Float, false, 0, IntPtr.Zero));
+            /// Draw Rendered Texture
+            MyGL.CheckError(() => GL.DrawArrays(PrimitiveType.Triangles, 0, 3 * 2)); // Starting from vertex 0; 3 vertices total -> 1 triangle
+
+            MyGL.CheckError(() => GL.DisableVertexAttribArray(index));
+
+            this.SwapBuffers();
         }
     }
 }

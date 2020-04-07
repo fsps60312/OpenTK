@@ -2,7 +2,7 @@
 
 namespace SIFT
 {
-    abstract partial class GameWindowBase
+    abstract partial class GameBase
     {
         protected interface GPUArray
         {

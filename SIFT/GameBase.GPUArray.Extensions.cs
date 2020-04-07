@@ -2,7 +2,7 @@
 
 namespace SIFT
 {
-    abstract partial class GameWindowBase
+    abstract partial class GameBase
     {
         protected partial class GPUArray<T>: GPUArray where T:struct
         {

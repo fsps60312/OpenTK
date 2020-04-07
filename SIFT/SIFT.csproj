@@ -72,12 +72,13 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Game.cs" />
+    <Compile Include="GameBase.GPUArray.Extensions.cs" />
+    <Compile Include="GameBase.GPUArray.cs" />
+    <Compile Include="GameBase.Method.cs" />
+    <Compile Include="GameBase.cs" />
+    <Compile Include="GameBase.Util.cs" />
     <Compile Include="GameWindow.cs" />
-    <Compile Include="GameWindowBase.GPUArray.Extensions.cs" />
-    <Compile Include="GameWindowBase.GPUArray.cs" />
-    <Compile Include="GameWindowBase.Method.cs" />
-    <Compile Include="GameWindowBase.Util.cs" />
-    <Compile Include="GameWindowBase.Init.cs" />
     <Compile Include="IO.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

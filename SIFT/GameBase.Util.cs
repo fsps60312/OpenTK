@@ -9,7 +9,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace SIFT
 {
-    abstract partial class GameWindowBase
+    abstract partial class GameBase
     {
         protected Random Rand { get; private set; } = new Random();
         protected abstract class ShaderBase
@@ -61,7 +61,8 @@ namespace SIFT
                     1);
             }
         }
-        protected class GPUImage
+    }
+        class GPUImage
         {
             private MyGL.Texture texture = new MyGL.Texture();
             public GPUImage(int width,int height)
@@ -74,5 +75,4 @@ namespace SIFT
                 texture.BindImage(location, access, SizedInternalFormat.Rgba16f);
             }
         }
-    }
 }
