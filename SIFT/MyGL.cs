@@ -40,7 +40,7 @@ namespace SIFT
             {
                 GL.CompileShader(id); CheckError();
                 string log=GL.GetShaderInfoLog(id);
-                Console.WriteLine($"ShaderInfoLog: {log}");
+                if(!string.IsNullOrEmpty(log))Console.WriteLine($"ShaderInfoLog: {log}");
                 GL.GetShader(id, ShaderParameter.CompileStatus, out int compile_status);
                 if (compile_status != GL_TRUE) throw new Exception();
             }
@@ -73,7 +73,7 @@ namespace SIFT
             {
                 GL.LinkProgram(id);CheckError();
                 string log=GL.GetProgramInfoLog(id);CheckError();
-                Console.WriteLine($"ProgramInfoLog: {log}");
+                if (!string.IsNullOrEmpty(log)) Console.WriteLine($"ProgramInfoLog: {log}");
                 GL.GetProgram(id, GetProgramParameterName.LinkStatus, out int link_status);CheckError();
                 if (link_status != GL_TRUE) throw new Exception();
             }

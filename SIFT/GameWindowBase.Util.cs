@@ -24,11 +24,11 @@ namespace SIFT
                 program = new MyGL.Program(
                    new MyGL.Shader(ShaderType.ComputeShader, source));
             }
-            public void Run(int group_count_x, int group_count_y, int group_count_z)
+            public void QueueForRun(int group_count_x, int group_count_y, int group_count_z)
             {
                 program.Use();
-                GL.DispatchCompute(group_count_x, group_count_y, group_count_z);
-                GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
+                GL.DispatchCompute(group_count_x, group_count_y, group_count_z);MyGL.CheckError();
+                //GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits); // seems not needed
             }
             public void Uniform(string name, uint x) { program.Use(); program.Uniform(program.GetUniformLocation(name), x); }
             public void Uniform(string name, int x) { program.Use(); program.Uniform(program.GetUniformLocation(name), x); }
@@ -41,9 +41,9 @@ namespace SIFT
             {
                 init_action?.Invoke(this);
             }
-            public void Run(int n)
+            public void QueueForRun(int n)
             {
-                Run((n + default_group_size_x - 1) / default_group_size_x, 1, 1);
+                QueueForRun((n + default_group_size_x - 1) / default_group_size_x, 1, 1);
             }
         }
         protected class Shader2D:ShaderBase
@@ -56,7 +56,7 @@ namespace SIFT
             }
             public void Run(int n,int m)
             {
-                Run((n + default_group_size_x - 1) / default_group_size_x,
+                QueueForRun((n + default_group_size_x - 1) / default_group_size_x,
                     (m + default_group_size_y - 1) / default_group_size_y, 
                     1);
             }
@@ -74,49 +74,6 @@ namespace SIFT
                 texture.BindImage(location, access, SizedInternalFormat.Rgba16f);
             }
             ~GPUImage() { texture.Delete(); }
-        }
-        protected interface GPUArray
-        {
-            void Bind(int location);
-        }
-        protected class GPUArray<T>: GPUArray where T:struct
-        {
-            public int Length { get; private set; } = 0;
-            private MyGL.Buffer buffer = new MyGL.Buffer();
-            public GPUArray() { }
-            public GPUArray(int length)
-            {
-                buffer.Data(System.Runtime.InteropServices.Marshal.SizeOf(typeof(T)) * length, BufferUsageHint.StreamDraw);
-                Length = length;
-            }
-            public GPUArray(T[] data) { ReplaceWith(data); }
-            public void ReplaceWith(T[] data)
-            {
-                buffer.Data(data, BufferUsageHint.StreamDraw);
-                Length = data.Length;
-            }
-            public void Mute(int offset, T[] data)
-            {
-                buffer.SubData(offset, data);
-            }
-            public T[] GetRange(int index,int count)
-            {
-                return buffer.GetSubData<T>(index, count);
-            }
-            public T[] ToArray()
-            {
-                return buffer.GetSubData<T>(0, Length);
-            }
-            public void Bind(int location)
-            {
-                buffer.BindBase(BufferRangeTarget.ShaderStorageBuffer, location);
-            }
-            public T this[int key]
-            {
-                get { return buffer.GetSubData<T>(key, 1)[0]; }
-                set { buffer.SubData(key, ref value); }
-            }
-            ~GPUArray() { buffer.Delete(); }
         }
     }
 }

@@ -11,6 +11,12 @@ namespace SIFT
 {
     abstract partial class GameWindowBase : OpenTK.GameWindow
     {
+        protected TimeSpan Timing(Action action)
+        {
+            var start_time = DateTime.Now;
+            action.Invoke();
+            return DateTime.Now - start_time;
+        }
         protected static class Param
         {
             public static void Array(params GPUArray[] arrays)
