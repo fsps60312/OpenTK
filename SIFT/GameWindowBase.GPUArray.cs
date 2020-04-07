@@ -8,7 +8,7 @@ namespace SIFT
         {
             void Bind(int location);
         }
-        protected class GPUArray<T>: GPUArray where T:struct
+        protected partial class GPUArray<T>: GPUArray where T:struct
         {
             public int Length { get; private set; } = 0;
             private MyGL.Buffer buffer = new MyGL.Buffer();
@@ -45,10 +45,6 @@ namespace SIFT
                 get { return buffer.GetSubData<T>(key, 1)[0]; }
                 set { buffer.SubData(key, ref value); }
             }
-            #region For Test
-            public void _Delete() { buffer.Delete(); }
-            #endregion
-            ~GPUArray() { buffer.Delete(); }
         }
     }
 }

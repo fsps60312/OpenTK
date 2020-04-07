@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices;
+using System.Collections.Concurrent;
 
 namespace SIFT
 {
@@ -12,7 +13,7 @@ namespace SIFT
     {
         const int GL_TRUE = 1;
         const int GL_FALSE = 0;
-        public static void CheckError()
+        public static void AssertError()
         {
             ErrorCode code = GL.GetError();
             if (code != ErrorCode.NoError)
@@ -20,12 +21,25 @@ namespace SIFT
                 throw new Exception($"MyGL.CheckError: {code}");
             }
         }
+        public static void CheckError(Action gl_action)
+        {
+            AssertError();
+            gl_action.Invoke();
+            AssertError();
+        }
+        public static T CheckError<T>(Func<T> gl_action)
+        {
+            AssertError();
+            T ret = gl_action.Invoke();
+            AssertError();
+            return ret;
+        }
         public class Shader
         {
             public int id { get; private set; }
             public Shader(ShaderType type, string source = null)
             {
-                id = GL.CreateShader(type); CheckError();
+                CheckError(()=>id = GL.CreateShader(type));
                 if (source != null)
                 {
                     Source(source);
@@ -34,150 +48,150 @@ namespace SIFT
             }
             public void Source(string source)
             {
-                GL.ShaderSource(id, source); CheckError();
+                CheckError(() => GL.ShaderSource(id, source));
             }
             public void Compile()
             {
-                GL.CompileShader(id); CheckError();
-                string log=GL.GetShaderInfoLog(id);
+                CheckError(() => GL.CompileShader(id));
+                string log= CheckError(() => GL.GetShaderInfoLog(id));
                 if(!string.IsNullOrEmpty(log))Console.WriteLine($"ShaderInfoLog: {log}");
-                GL.GetShader(id, ShaderParameter.CompileStatus, out int compile_status);
+                AssertError(); GL.GetShader(id, ShaderParameter.CompileStatus, out int compile_status);AssertError();
                 if (compile_status != GL_TRUE) throw new Exception();
             }
-            public void Delete()
+            static BlockingCollection<int> garbage = new BlockingCollection<int>();
+            public static void GC()
             {
-                GL.DeleteShader(id); CheckError();
-                id = 0;
+                while(garbage.Count>0)CheckError(() => GL.DeleteShader(garbage.Take()));
             }
-            ~Shader() { Delete(); }
+            ~Shader() { garbage.Add(id); }
         }
         public class Program
         {
             public int id { get; private set; }
             public Program(params Shader[] shaders_to_attach)
             {
-                id = GL.CreateProgram(); if (id == 0) throw new Exception();
+                id = CheckError(() => GL.CreateProgram()); if (id == 0) throw new Exception();
                 foreach(var shader in shaders_to_attach) Attach(shader);
                 Link();
                 foreach (var shader in shaders_to_attach) Detach(shader);
             }
             public void Attach(Shader shader)
             {
-                GL.AttachShader(id, shader.id);CheckError();
+                CheckError(() => GL.AttachShader(id, shader.id));
             }
             public void Detach(Shader shader)
             {
-                GL.DetachShader(id, shader.id);CheckError();
+                CheckError(() => GL.DetachShader(id, shader.id));
             }
             public void Link()
             {
-                GL.LinkProgram(id);CheckError();
-                string log=GL.GetProgramInfoLog(id);CheckError();
+                CheckError(() => GL.LinkProgram(id));
+                string log= CheckError(() => GL.GetProgramInfoLog(id));
                 if (!string.IsNullOrEmpty(log)) Console.WriteLine($"ProgramInfoLog: {log}");
-                GL.GetProgram(id, GetProgramParameterName.LinkStatus, out int link_status);CheckError();
+                AssertError(); GL.GetProgram(id, GetProgramParameterName.LinkStatus, out int link_status); AssertError();
                 if (link_status != GL_TRUE) throw new Exception();
             }
             public void Use()
             {
-                GL.UseProgram(id); CheckError();
+                CheckError(() => GL.UseProgram(id));
             }
             public int GetUniformLocation(string name)
             {
-                int location = GL.GetUniformLocation(id, name);CheckError();
+                int location = CheckError(() => GL.GetUniformLocation(id, name));
                 return location;
             }
             #region Uniform
             public void Uniform(int location, uint x)
             {
-                GL.Uniform1(location, x); CheckError();
+                MyGL.CheckError(() => GL.Uniform1(location, x));
             }
             public void Uniform(int location, int x)
             {
-                GL.Uniform1(location, x); CheckError();
+                MyGL.CheckError(() => GL.Uniform1(location, x));
             }
             #endregion
-            public void Delete()
+            static BlockingCollection<int> garbage = new BlockingCollection<int>();
+            public static void GC()
             {
-                GL.DeleteProgram(id);CheckError();
-                id = 0;
+                while (garbage.Count > 0) CheckError(() => GL.DeleteProgram(garbage.Take()));
             }
-            ~Program() { Delete(); }
+            ~Program() { garbage.Add(id); }
         }
         public class Texture
         {
             public int id { get; private set; }
             public Texture()
             {
-                id = GL.GenTexture();CheckError();
+                id = CheckError(() => GL.GenTexture());
             }
             public void TextureStorage2DVec4(int width, int height)
             {
-                GL.TextureStorage2D(id, 1, SizedInternalFormat.Rgba16f, width, height);CheckError();
+                CheckError(() => GL.TextureStorage2D(id, 1, SizedInternalFormat.Rgba16f, width, height));
             }
             public void Bind()
             {
-                GL.BindTexture(TextureTarget.TextureRectangle, id); CheckError();
+                CheckError(() => GL.BindTexture(TextureTarget.TextureRectangle, id));
             }
             public void BindImage(int unit,TextureAccess access,SizedInternalFormat format)
             {
-                GL.BindImageTexture(unit, id, 0, false, 0, access, format);CheckError();
+                CheckError(() => GL.BindImageTexture(unit, id, 0, false, 0, access, format));
             }
-            public void Delete()
+            static BlockingCollection<int> garbage = new BlockingCollection<int>();
+            public static void GC()
             {
-                GL.DeleteTexture(id);CheckError();
-                id = 0;
+                while (garbage.Count > 0) CheckError(() => GL.DeleteTexture(garbage.Take()));
             }
-            ~Texture() { Delete(); }
+            ~Texture() { garbage.Add(id); }
         }
         public class Buffer
         {
             public int id { get; private set; }
             public Buffer()
             {
-                GL.CreateBuffers(1, out int i);
-                id = i; CheckError();
+                AssertError(); GL.CreateBuffers(1, out int i);AssertError();
+                id = i;
             }
 
             public void Data(int num_bytes, BufferUsageHint usage)
             {
-                GL.NamedBufferData(id, num_bytes, IntPtr.Zero, usage);CheckError();
+                CheckError(() => GL.NamedBufferData(id, num_bytes, IntPtr.Zero, usage));
             }
             // byte, char, double, float, int, long, short
             public void Data<T>(T[] data, BufferUsageHint usage)where T:struct
             {
-                GL.NamedBufferData<T>(id, Marshal.SizeOf(typeof(T)) * data.Length, data, usage);CheckError();
+                CheckError(() => GL.NamedBufferData<T>(id, Marshal.SizeOf(typeof(T)) * data.Length, data, usage));
             }
             public void SubData<T>(int offset, T[] data) where T : struct
             {
                 int u = Marshal.SizeOf(typeof(T));
-                GL.NamedBufferSubData<T>(id, new IntPtr(u * offset), u * data.Length, data); CheckError();
+                CheckError(() => GL.NamedBufferSubData<T>(id, new IntPtr(u * offset), u * data.Length, data));
             }
             public void SubData<T>(int offset, ref T data) where T : struct
             {
                 int u = Marshal.SizeOf(typeof(T));
-                GL.NamedBufferSubData<T>(id, new IntPtr(u * offset), u, ref data); CheckError();
+                AssertError(); GL.NamedBufferSubData<T>(id, new IntPtr(u * offset), u, ref data); AssertError();
             }
             public void Bind(BufferTarget target)
             {
-                GL.BindBuffer(target, id); CheckError();
+                CheckError(() => GL.BindBuffer(target, id));
             }
             public T[] GetSubData<T>(int offset,int size)where T:struct
             {
                 T[] ret = new T[size];
                 int u = Marshal.SizeOf(typeof(T));
-                GL.GetNamedBufferSubData<T>(id, new IntPtr(u * offset), u * size, ret);CheckError();
+                CheckError(() => GL.GetNamedBufferSubData<T>(id, new IntPtr(u * offset), u * size, ret));
                 return ret;
             }
             public void BindBase(BufferRangeTarget target,int index)
             {
-                GL.BindBufferBase(target, index, id);CheckError();
+                CheckError(() => GL.BindBufferBase(target, index, id));
             }
-            public void Delete()
+            static BlockingCollection<int> garbage = new BlockingCollection<int>();
+            public static void GC()
             {
-                GL.DeleteBuffer(id);CheckError();
-                id = 0;
+                while (garbage.Count > 0) CheckError(() => GL.DeleteBuffer(garbage.Take()));
             }
-            ~Buffer() { Delete(); }
+            ~Buffer() { garbage.Add(id); }
         }
     }
 }

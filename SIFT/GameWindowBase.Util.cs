@@ -11,6 +11,7 @@ namespace SIFT
 {
     abstract partial class GameWindowBase : OpenTK.GameWindow
     {
+        protected Random Rand { get; private set; } = new Random();
         protected abstract class ShaderBase
         {
             private MyGL.Program program;
@@ -24,15 +25,14 @@ namespace SIFT
                 program = new MyGL.Program(
                    new MyGL.Shader(ShaderType.ComputeShader, source));
             }
-            public void QueueForRun(int group_count_x, int group_count_y, int group_count_z)
+            protected void QueueForRun(int group_count_x, int group_count_y, int group_count_z)
             {
                 program.Use();
-                GL.DispatchCompute(group_count_x, group_count_y, group_count_z);MyGL.CheckError();
+                MyGL.CheckError(() => GL.DispatchCompute(group_count_x, group_count_y, group_count_z));
                 //GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits); // seems not needed
             }
             public void Uniform(string name, uint x) { program.Use(); program.Uniform(program.GetUniformLocation(name), x); }
             public void Uniform(string name, int x) { program.Use(); program.Uniform(program.GetUniformLocation(name), x); }
-            ~ShaderBase() { program.Delete(); }
         }
         protected class Shader:ShaderBase
         {
@@ -73,7 +73,6 @@ namespace SIFT
             {
                 texture.BindImage(location, access, SizedInternalFormat.Rgba16f);
             }
-            ~GPUImage() { texture.Delete(); }
         }
     }
 }

@@ -29,8 +29,8 @@ namespace SIFT
         }
         private void CreateVertexArrayObject()
         {
-            int id = GL.GenVertexArray();
-            GL.BindVertexArray(id);
+            int id = MyGL.CheckError(()=> GL.GenVertexArray());
+            MyGL.CheckError(() => GL.BindVertexArray(id));
         }
         public GameWindowBase()
             // set window resolution, title, and default behaviour
@@ -49,7 +49,7 @@ namespace SIFT
         }
         protected override void OnResize(EventArgs e)
         {
-            GL.Viewport(0, 0, this.Width, this.Height);
+            MyGL.CheckError(() => GL.Viewport(0, 0, this.Width, this.Height));
         }
         protected override void OnLoad(EventArgs e)
         {
@@ -70,23 +70,25 @@ namespace SIFT
         //}
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            GL.ClearColor(Color4.Purple);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            MyGL.Shader.GC();
+            MyGL.Program.GC();
+            MyGL.Buffer.GC();
+            MyGL.Texture.GC();
+            MyGL.CheckError(() => GL.ClearColor(Color4.Purple));
+            MyGL.CheckError(() => GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
 
             //RunShaders();
             Render(e.Time);
 
             texture_program.Use();
             int index = 0; // same as "location" in vertex shader
-            GL.EnableVertexAttribArray(index); MyGL.CheckError();
+            MyGL.CheckError(() => GL.EnableVertexAttribArray(index));
             window_vertex_buffer.Bind(BufferTarget.ArrayBuffer);
-            MyGL.CheckError();
-            GL.VertexAttribPointer(index, 2, VertexAttribPointerType.Float, false, 0, IntPtr.Zero);
-            MyGL.CheckError();
+            MyGL.CheckError(() => GL.VertexAttribPointer(index, 2, VertexAttribPointerType.Float, false, 0, IntPtr.Zero));
             /// Draw Rendered Texture
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 3 * 2); MyGL.CheckError(); // Starting from vertex 0; 3 vertices total -> 1 triangle
+            MyGL.CheckError(() => GL.DrawArrays(PrimitiveType.Triangles, 0, 3 * 2)); // Starting from vertex 0; 3 vertices total -> 1 triangle
 
-            GL.DisableVertexAttribArray(index);
+            MyGL.CheckError(() => GL.DisableVertexAttribArray(index));
 
             this.SwapBuffers();
         }

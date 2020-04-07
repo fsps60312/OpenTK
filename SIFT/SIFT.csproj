@@ -73,6 +73,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="GameWindow.cs" />
+    <Compile Include="GameWindowBase.GPUArray.Extensions.cs" />
     <Compile Include="GameWindowBase.GPUArray.cs" />
     <Compile Include="GameWindowBase.Method.cs" />
     <Compile Include="GameWindowBase.Util.cs" />
@@ -120,6 +121,7 @@
     <EmbeddedResource Include="shaders\fill_range.glsl" />
     <EmbeddedResource Include="shaders\fill_value.glsl" />
     <EmbeddedResource Include="shaders\add_value.glsl" />
+    <EmbeddedResource Include="shaders\search_value.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
