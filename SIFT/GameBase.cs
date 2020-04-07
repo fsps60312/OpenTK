@@ -12,6 +12,7 @@ namespace SIFT
     abstract partial class GameBase
     {
         protected GameWindow Window { get; private set; }
+        protected Random Rand { get; private set; } = new Random();
         protected GameBase(GameWindow window)
         {
             Window = window;
@@ -20,5 +21,11 @@ namespace SIFT
         }
         protected abstract void Update(double secs);
         protected abstract void Render(double secs);
+        protected TimeSpan Timing(Action action)
+        {
+            var start_time = DateTime.Now;
+            action.Invoke();
+            return DateTime.Now - start_time;
+        }
     }
 }

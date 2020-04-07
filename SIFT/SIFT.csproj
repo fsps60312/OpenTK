@@ -64,6 +64,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Shader.cs" />
+    <Compile Include="Shader2D.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -73,11 +75,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Game.cs" />
-    <Compile Include="GameBase.GPUArray.Extensions.cs" />
-    <Compile Include="GameBase.GPUArray.cs" />
-    <Compile Include="GameBase.Method.cs" />
+    <Compile Include="GPUArray.Extensions.cs" />
+    <Compile Include="GPUArray.cs" />
+    <Compile Include="GPUImage.cs" />
+    <Compile Include="Param.cs" />
     <Compile Include="GameBase.cs" />
-    <Compile Include="GameBase.Util.cs" />
+    <Compile Include="ShaderBase.cs" />
     <Compile Include="GameWindow.cs" />
     <Compile Include="IO.cs" />
     <Compile Include="MainWindow.xaml.cs">
