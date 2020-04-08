@@ -64,6 +64,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Rand.cs" />
     <Compile Include="Shader.cs" />
     <Compile Include="Shader2D.cs" />
     <Page Include="MainWindow.xaml">
@@ -125,7 +126,15 @@
     <EmbeddedResource Include="shaders\fill_range.glsl" />
     <EmbeddedResource Include="shaders\fill_value.glsl" />
     <EmbeddedResource Include="shaders\add_value.glsl" />
-    <EmbeddedResource Include="shaders\search_value.glsl" />
+    <EmbeddedResource Include="shaders\contains_value.glsl" />
+    <EmbeddedResource Include="shaders\not_range.glsl" />
+    <EmbeddedResource Include="shaders\not_sorted.glsl" />
+    <EmbeddedResource Include="shaders\bitonic_merge.glsl" />
+    <EmbeddedResource Include="shaders\copy.glsl" />
+    <EmbeddedResource Include="shaders\segment_merge.glsl" />
+    <EmbeddedResource Include="shaders\segment_split.glsl" />
+    <EmbeddedResource Include="shaders\tree_pull.glsl" />
+    <EmbeddedResource Include="shaders\tree_push.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

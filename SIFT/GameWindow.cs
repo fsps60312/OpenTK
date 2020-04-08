@@ -11,7 +11,7 @@ namespace SIFT
 {
     class GameWindow : OpenTK.GameWindow
     {
-        private MyGL.Buffer window_vertex_buffer;
+        private MyGL.Buffer<float> window_vertex_buffer;
         private MyGL.Program texture_program;
         public GPUImage Canvas { get; private set; }
         Game game;
@@ -25,7 +25,7 @@ namespace SIFT
                  1.0f, -1.0f,
                  1.0f,  1.0f,
             };
-            window_vertex_buffer = new MyGL.Buffer();
+            window_vertex_buffer = new MyGL.Buffer<float>();
             window_vertex_buffer.Data(g_window_vertex_buffer_data, BufferUsageHint.StaticDraw);
         }
         private void CreateVertexArrayObject()
@@ -47,7 +47,6 @@ namespace SIFT
             InitFBO();
             CreateVertexArrayObject();
             Canvas = new GPUImage(this.Width, this.Height);
-            game = new Game(this);
         }
         protected override void OnResize(EventArgs e)
         {
@@ -56,6 +55,7 @@ namespace SIFT
         protected override void OnLoad(EventArgs e)
         {
             // this is called when the window starts running
+            game = new Game(this);
         }
         public delegate void DoubleHandler(double secs);
         public event DoubleHandler Update, Render;

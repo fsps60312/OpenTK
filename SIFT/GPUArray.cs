@@ -8,12 +8,13 @@ namespace SIFT
     }
     partial class GPUArray<T> : GPUArray where T : struct
     {
+        public string Name { get; set; } = "GPUArray<" + typeof(T).Name + ">";
         public int Length { get; private set; } = 0;
-        private MyGL.Buffer buffer = new MyGL.Buffer();
+        private MyGL.Buffer<T> buffer = new MyGL.Buffer<T>();
         public GPUArray() { }
         public GPUArray(int length)
         {
-            buffer.Data(System.Runtime.InteropServices.Marshal.SizeOf(typeof(T)) * length, BufferUsageHint.StreamDraw);
+            buffer.Data(length, BufferUsageHint.StreamDraw);
             Length = length;
         }
         public GPUArray(T[] data) { Data(data); }
@@ -28,11 +29,11 @@ namespace SIFT
         }
         public T[] GetRange(int index, int count)
         {
-            return buffer.GetSubData<T>(index, count);
+            return buffer.GetSubData(index, count);
         }
         public T[] ToArray()
         {
-            return buffer.GetSubData<T>(0, Length);
+            return buffer.GetSubData(0, Length);
         }
         public void Bind(int location)
         {
@@ -40,8 +41,12 @@ namespace SIFT
         }
         public T this[int key]
         {
-            get { return buffer.GetSubData<T>(key, 1)[0]; }
+            get { return buffer.GetSubData(key, 1)[0]; }
             set { buffer.SubData(key, ref value); }
+        }
+        public override string ToString()
+        {
+            return Name + ": {" + string.Join(", ", this.ToArray()) + "}";
         }
     }
 }

@@ -143,30 +143,39 @@ namespace SIFT
             }
             ~Texture() { garbage.Add(id); }
         }
-        public class Buffer
+        public abstract class Buffer
         {
             public int id { get; private set; }
-            public Buffer()
+            protected Buffer()
             {
                 AssertError(); GL.CreateBuffers(1, out int i);AssertError();
                 id = i;
             }
-
-            public void Data(int num_bytes, BufferUsageHint usage)
+            private static BlockingCollection<int> garbage = new BlockingCollection<int>();
+            public static void GC()
             {
-                CheckError(() => GL.NamedBufferData(id, num_bytes, IntPtr.Zero, usage));
+                while (garbage.Count > 0) CheckError(() => GL.DeleteBuffer(garbage.Take()));
+            }
+            ~Buffer() { garbage.Add(id); }
+        }
+        public class Buffer<T>:Buffer where T:struct
+        {
+            public Buffer():base() { }
+            public void Data(int length, BufferUsageHint usage)
+            {
+                CheckError(() => GL.NamedBufferData(id, Marshal.SizeOf(typeof(T)) * length, IntPtr.Zero, usage));
             }
             // byte, char, double, float, int, long, short
-            public void Data<T>(T[] data, BufferUsageHint usage)where T:struct
+            public void Data(T[] data, BufferUsageHint usage)
             {
                 CheckError(() => GL.NamedBufferData<T>(id, Marshal.SizeOf(typeof(T)) * data.Length, data, usage));
             }
-            public void SubData<T>(int offset, T[] data) where T : struct
+            public void SubData(int offset, T[] data)
             {
                 int u = Marshal.SizeOf(typeof(T));
                 CheckError(() => GL.NamedBufferSubData<T>(id, new IntPtr(u * offset), u * data.Length, data));
             }
-            public void SubData<T>(int offset, ref T data) where T : struct
+            public void SubData(int offset, ref T data)
             {
                 int u = Marshal.SizeOf(typeof(T));
                 AssertError(); GL.NamedBufferSubData<T>(id, new IntPtr(u * offset), u, ref data); AssertError();
@@ -175,7 +184,7 @@ namespace SIFT
             {
                 CheckError(() => GL.BindBuffer(target, id));
             }
-            public T[] GetSubData<T>(int offset,int size)where T:struct
+            public T[] GetSubData(int offset,int size)
             {
                 T[] ret = new T[size];
                 int u = Marshal.SizeOf(typeof(T));
@@ -186,12 +195,6 @@ namespace SIFT
             {
                 CheckError(() => GL.BindBufferBase(target, index, id));
             }
-            static BlockingCollection<int> garbage = new BlockingCollection<int>();
-            public static void GC()
-            {
-                while (garbage.Count > 0) CheckError(() => GL.DeleteBuffer(garbage.Take()));
-            }
-            ~Buffer() { garbage.Add(id); }
         }
     }
 }
