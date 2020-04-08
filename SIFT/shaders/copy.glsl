@@ -1,7 +1,7 @@
 ﻿#version 460
 
-layout(std430, binding = 0) buffer s    { int buf_s[]; };
-layout(std430, binding = 1) buffer t    { int buf_t[]; };
+layout(std430, binding = 0) readonly  buffer s    { int buf_s[]; };
+layout(std430, binding = 1) writeonly buffer t    { int buf_t[]; };
 
 void main()
 {

@@ -47,5 +47,16 @@ namespace SIFT
             ret.Shuffle();
             return ret;
         }
+        protected List<T>Sorted<T>(List<T>l)
+        {
+            List<T> ret = new List<T>(l);
+            ret.Sort();
+            return ret;
+        }
+        protected bool IsRange(List<int> l)
+        {
+            for (int i = 0; i < l.Count; i++) if (l[i] != i) return false;
+            return true;
+        }
     }
 }

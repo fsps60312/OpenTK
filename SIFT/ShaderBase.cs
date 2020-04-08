@@ -25,7 +25,8 @@ namespace SIFT
         {
             program.Use();
             MyGL.CheckError(() => GL.DispatchCompute(group_count_x, group_count_y, group_count_z));
-            GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits); // seems not needed
+            //GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits); // seems not needed
+            MyGL.CheckError(()=> GL.Finish());
         }
         public void Uniform(string name, uint x) { program.Use(); program.Uniform(program.GetUniformLocation(name), x); }
         public void Uniform(string name, int x) { program.Use(); program.Uniform(program.GetUniformLocation(name), x); }

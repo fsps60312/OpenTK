@@ -41,5 +41,6 @@ void main() {
 	// Get Index in Global Work Group
 	const int i = int(gl_GlobalInvocationID.x);
 	if (i >= buf_s.length()) return;
-	buf_ret[cal_dest(i, (bitCount(buf_t[i] >> level) & 1) == 0)] = buf_s[i];
+	const int dest = cal_dest(i, (bitCount(buf_t[i] >> level) & 1) == 0);
+	buf_ret[dest] = buf_s[i];
 }
