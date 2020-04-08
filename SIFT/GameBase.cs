@@ -27,9 +27,9 @@ namespace SIFT
             return DateTime.Now - start_time;
         }
         protected void Assert(bool condition) { if (!condition) throw new Exception("assertion failed."); }
-        protected void Print(object o)
+        protected void Print(params object[] o)
         {
-            Console.WriteLine(o);
+            Console.WriteLine(string.Join(" ", o));
         }
         protected void Print()
         {

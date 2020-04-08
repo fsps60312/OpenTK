@@ -3,7 +3,7 @@
 layout(std430,  binding = 0) buffer t    { int buf_t[]; };
 layout(std430,  binding = 1) buffer l    { int buf_l[]; };
 layout(std430,  binding = 2) buffer r    { int buf_r[]; };
-layout(std430,  binding = 3) buffer shift{ int buf_shift[]; };
+layout(std430,  binding = 3) readonly buffer shift{ int buf_shift[]; };
 
 void main()
 {

@@ -1,12 +1,12 @@
 ﻿#version 460
 
-layout(std430,  binding = 0) buffer s    { int buf_s[]; };
-layout(std430,  binding = 1) buffer t    { int buf_t[]; };
-layout(std430,  binding = 2) buffer l    { int buf_l[]; };
-layout(std430,  binding = 3) buffer r    { int buf_r[]; };
+layout(std430,  binding = 0) readonly buffer s    { int buf_s[]; };
+layout(std430,  binding = 1) readonly buffer t    { int buf_t[]; };
+layout(std430,  binding = 2) readonly buffer l    { int buf_l[]; };
+layout(std430,  binding = 3) readonly buffer r    { int buf_r[]; };
 // return
-layout(std430,  binding = 4) buffer ret  { int buf_ret[]; };
-layout(std430,  binding = 5) buffer shift{ int buf_shift[]; };
+layout(std430,  binding = 4) writeonly buffer ret  { int buf_ret[]; };
+layout(std430,  binding = 5) writeonly buffer shift{ int buf_shift[]; };
 
 uniform int level;
 
