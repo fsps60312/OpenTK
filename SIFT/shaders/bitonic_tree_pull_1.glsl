@@ -1,6 +1,6 @@
 ﻿#version 460
 
-layout(std430,  binding = 0)           buffer t    { int buf_t[]; };
+layout(std430,  binding = 0) readonly  buffer t    { int buf_t[]; };
 layout(std430,  binding = 1) readonly  buffer l    { int buf_l[]; };
 layout(std430,  binding = 2) readonly  buffer r    { int buf_r[]; };
 layout(std430,  binding = 3) writeonly buffer l_ret{ int buf_l_ret[]; };
@@ -25,5 +25,4 @@ void main() {
 	const int i = int(gl_GlobalInvocationID.x);
 	if (i >= buf_t.length()) return;
 	merge_segment(i);
-	buf_t[i] = buf_t[i] >> 1;
 }

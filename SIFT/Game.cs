@@ -30,6 +30,7 @@ namespace SIFT
                     shift = new GPUArray<int>(n) { Name = "shift" };
                 t.Value(0); l.Value(0); r.Value(n - 1); shift.Value(0);
                 int cur_depth = 0;
+                List<string> log = new List<string>();
                 var tree_push = new Action(() =>
                 {
                     Param.Array(t, l, r, shift); new Shader("SIFT.shaders.bitonic_tree_push.glsl").QueueForRun(n);
@@ -38,9 +39,10 @@ namespace SIFT
                 });
                 var tree_pull = new Action(() =>
                 {
-                    Param.Array(t, l, r, _, __); new Shader("SIFT.shaders.bitonic_tree_pull.glsl").QueueForRun(n);
+                    Param.Array(t, l, r, _, __); new Shader("SIFT.shaders.bitonic_tree_pull_1.glsl").QueueForRun(n);
                     Param.Array(_, l); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
                     Param.Array(__, r); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
+                    Param.Array(t); new Shader("SIFT.shaders.bitonic_tree_pull_2.glsl").QueueForRun(n);
                     //Assert(IsRange(Sorted(s.ToArray().ToList())));
                     cur_depth--;
                 });
@@ -74,6 +76,8 @@ namespace SIFT
                 if (!s.IsRange())
                 {
                     Print("n=", n, ", s=", s);
+                    Print(l);
+                    Print(r);
                     Console.ReadLine();
                 }
             }

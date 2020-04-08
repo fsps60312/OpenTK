@@ -132,9 +132,10 @@
     <EmbeddedResource Include="shaders\bitonic_merge.glsl" />
     <EmbeddedResource Include="shaders\copy.glsl" />
     <EmbeddedResource Include="shaders\bitonic_tree_push.glsl" />
-    <EmbeddedResource Include="shaders\bitonic_tree_pull.glsl" />
+    <EmbeddedResource Include="shaders\bitonic_tree_pull_1.glsl" />
     <EmbeddedResource Include="shaders\all_equal.glsl" />
     <EmbeddedResource Include="shaders\elementwise_equal.glsl" />
+    <EmbeddedResource Include="shaders\bitonic_tree_pull_2.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
