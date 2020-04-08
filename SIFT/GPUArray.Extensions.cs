@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using System;
 
 namespace SIFT
 {
@@ -46,6 +46,55 @@ namespace SIFT
             Param.Array(this, flag);
             new Shader($"SIFT.shaders.contains_value.glsl", p => p.Uniform("value", value)).QueueForRun(Length);
             return flag[0] == 1;
+        }
+        public void Sort()
+        {
+            int n = this.Length;
+            GPUArray<int>
+                buf1 = new GPUArray<int>(n) { Name = "_" },
+                buf2 = new GPUArray<int>(n) { Name = "__" },
+                l = new GPUArray<int>(n) { Name = "l" },
+                r = new GPUArray<int>(n) { Name = "r" },
+                t = new GPUArray<int>(n) { Name = "t" },
+                shift = new GPUArray<int>(n) { Name = "shift" };
+            t.Value(0); l.Value(0); r.Value(n - 1); shift.Value(0);
+            int cur_depth = 0;
+            var tree_push = new Action(() =>
+            {
+                Param.Array(t, l, r, shift); new Shader("SIFT.shaders.bitonic_tree_push.glsl").QueueForRun(n);
+                cur_depth++;
+            });
+            var tree_pull = new Action(() =>
+            {
+                Param.Array(t, l, r, buf1, buf2); new Shader("SIFT.shaders.bitonic_tree_pull_1.glsl").QueueForRun(n);
+                Param.Array(buf1, l); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
+                Param.Array(buf2, r); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
+                Param.Array(t); new Shader("SIFT.shaders.bitonic_tree_pull_2.glsl").QueueForRun(n);
+                cur_depth--;
+            });
+            var bitonic_merge = new Action<int>(level =>
+            {
+                Param.Array(this, t, l, r, buf1, shift); new Shader("SIFT.shaders.bitonic_merge.glsl", p => p.Uniform("level", level)).QueueForRun(n);
+                Param.Array(buf1, this); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
+            });
+            while (!l.IsRange()) tree_push();
+            int max_depth = cur_depth;
+            while (cur_depth > 0)
+            {
+                tree_pull();
+                int sort_depth = cur_depth;
+                int level = 0;
+                while (cur_depth < max_depth)
+                {
+                    bitonic_merge(level);
+                    tree_push(); level++;
+                }
+                while (cur_depth > sort_depth)
+                {
+                    tree_pull();
+                }
+            }
+            if (!this.IsSorted()) throw new Exception();
         }
         public GPUArray<T> Clone()
         {

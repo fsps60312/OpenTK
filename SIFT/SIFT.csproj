@@ -64,6 +64,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ListExtensions.cs" />
     <Compile Include="Rand.cs" />
     <Compile Include="Shader.cs" />
     <Compile Include="Shader2D.cs" />
