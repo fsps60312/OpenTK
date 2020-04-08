@@ -6,6 +6,7 @@ layout(std430,  binding = 2) buffer l    { int buf_l[]; };
 layout(std430,  binding = 3) buffer r    { int buf_r[]; };
 // return
 layout(std430,  binding = 4) buffer ret  { int buf_ret[]; };
+layout(std430,  binding = 5) buffer shift{ int buf_shift[]; };
 
 uniform int level;
 
@@ -13,25 +14,25 @@ int cal_dest(const int i, const bool ascend) {
 	const int l = buf_l[i], r = buf_r[i];
 	const int mid = (l + r) / 2;
 	const int n = r - l + 1;
-	const int v = buf_s[i];
-	if (i <= mid) {
-		const int j = i + (n + 1) / 2;
-		if ((n & 1) == 0) { // even: OOOOXXXX
-			return (v < buf_s[j]) == ascend ? i: j;
-		} else {            // odd: OOOOXXX
-			bool need_shift = (buf_s[mid] < buf_s[r]) != ascend;
-			if (i == mid) return need_shift? r: i;
-			else {
-				return (v < buf_s[j]) == ascend ? i: (need_shift ? j - 1: j);
-			}
+	if ((n & 1) == 0) {
+		buf_shift[i] = 0;
+		if (i <= mid) {
+			const int j = i + n / 2;
+			return (buf_s[i] < buf_s[j]) == ascend ? i: j;
+		} else {
+			const int j = i - n / 2;
+			return (buf_s[j] < buf_s[i]) == ascend ? i: j;
 		}
 	} else {
-		const int j = i - (n + 1) / 2;
-		if ((n & 1) == 0) { // even: OOOOXXXX
-			return (buf_s[j] < v) == ascend ? i: j;
-		} else {            // odd: OOOOXXX
-			bool need_shift = (buf_s[mid] < buf_s[r]) != ascend;
-			return (buf_s[j] < v) == ascend ? (need_shift ? i - 1: i): j;
+		bool no_shift = (buf_s[mid] < buf_s[r]) == ascend;
+		buf_shift[i] = no_shift ? 0: 1;
+		if (i == mid) return no_shift? i: r;
+		else if (i < mid) {
+			const int j = i + (n + 1) / 2;
+			return (buf_s[i] < buf_s[j]) == ascend ? i: (no_shift ? j: j - 1);
+		} else {
+			const int j = i - (n + 1) / 2;
+			return (buf_s[j] < buf_s[i]) == ascend ? (no_shift ? i: i - 1): j;
 		}
 	}
 }

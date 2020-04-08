@@ -35,5 +35,17 @@ namespace SIFT
         {
             Console.WriteLine();
         }
+        protected List<int>Range(int n)
+        {
+            List<int> ret = new List<int>();
+            for (int i = 0; i < n; i++) ret.Add(i);
+            return ret;
+        }
+        protected List<T> Shuffled<T>(List<T>l)
+        {
+            List<T> ret = new List<T>(l);
+            ret.Shuffle();
+            return ret;
+        }
     }
 }

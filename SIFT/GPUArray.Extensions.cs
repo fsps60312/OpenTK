@@ -16,17 +16,24 @@ namespace SIFT
         }
         public bool IsRange()
         {
-            var flag = new GPUArray<int>(new[] { 0 });
+            var flag = new GPUArray<int>(new[] { 1 });
             Param.Array(this, flag);
-            new Shader($"SIFT.shaders.not_range.glsl").QueueForRun(Length);
-            return flag[0] == 0;
+            new Shader($"SIFT.shaders.is_range.glsl").QueueForRun(Length);
+            return flag[0] == 1;
         }
         public bool IsSorted()
         {
-            var flag = new GPUArray<int>(new[] { 0 });
+            var flag = new GPUArray<int>(new[] { 1 });
             Param.Array(this, flag);
-            new Shader($"SIFT.shaders.not_sorted.glsl").QueueForRun(Length);
-            return flag[0] == 0;
+            new Shader($"SIFT.shaders.is_sorted.glsl").QueueForRun(Length);
+            return flag[0] == 1;
+        }
+        public bool AllEqual(int value)
+        {
+            var flag = new GPUArray<int>(new[] { 1 });
+            Param.Array(this, flag);
+            new Shader($"SIFT.shaders.all_equal.glsl", p => p.Uniform("value", value)).QueueForRun(Length);
+            return flag[0] == 1;
         }
         public void Value(int value)
         {
@@ -39,6 +46,12 @@ namespace SIFT
             Param.Array(this, flag);
             new Shader($"SIFT.shaders.contains_value.glsl", p => p.Uniform("value", value)).QueueForRun(Length);
             return flag[0] == 1;
+        }
+        public GPUArray<T> Clone()
+        {
+            var ret = new GPUArray<T>(this.Length);
+            Param.Array(this, ret); new Shader($"SIFT.shaders.copy.glsl").QueueForRun(Length);
+            return ret;
         }
     }
 }
