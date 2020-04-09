@@ -9,15 +9,18 @@ using OpenTK.Graphics.OpenGL;
 
 namespace SIFT
 {
-    static class Param
+    abstract partial class GameBase
     {
-        public static void Array(params GPUArray[] arrays)
+        protected static class Param
         {
-            for(int i = 0; i < arrays.Length; i++) arrays[i].Bind(i);
-        }
-        public static void Image(params GPUImage[]images)
-        {
-            for (int i = 0; i < images.Length; i++) images[i].Bind(i, TextureAccess.ReadWrite);
+            public static void Array(params GPUArray[] arrays)
+            {
+                for (int i = 0; i < arrays.Length; i++) arrays[i].Bind(i);
+            }
+            public static void Image(params GPUImage[] images)
+            {
+                for (int i = 0; i < images.Length; i++) images[i].Bind(i, TextureAccess.ReadWrite);
+            }
         }
     }
 }
