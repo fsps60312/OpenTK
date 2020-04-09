@@ -127,6 +127,11 @@ namespace SIFT
                     PrintN(value[root], " ");
                     PrintTree(rigt[root]);
                 }
+                private void PrintTree(int root,int spare)
+                {
+                    PrintTree(root);
+                    Print(spare);
+                }
                 private void BiMerge(int root, int spare, bool ascend)
                 {
                     if (root == -1) return;
@@ -171,19 +176,19 @@ namespace SIFT
                 {
                     Assert(__builtin_popcount(n) == 1);
                     int[] roots = new int[n], spares = new int[n];
-                    if (false)
+                    if (true)
                     {
-                        for (int start_level = 1; start_level < __builtin_ctz(n); start_level++)
+                        for (int start_level = 1; start_level <= __builtin_ctz(n); start_level++)
                         {
                             for (int level = start_level; level >= 1; level--)
                             {
-                                for (int id = 0; id < (n >> level); id++)
+                                int id_max = n >> level;
+                                for (int id = 0; id < id_max; id++)
                                 {
-                                    Print("a");
                                     int i = (id << level) + (1 << (level - 1)) - 1;
                                     int origin_id = id + (n >> level);
-                                    int root = roots[origin_id];
-                                    int spare = spares[origin_id]; // 10101001111 -> 101010
+                                    int root = level == start_level ? origin_id : roots[origin_id];
+                                    int spare = level == start_level ? root >> (__builtin_ctz(~root) + 1) : spares[origin_id]; // 10101001111 -> 101010
                                     bool ascend = __builtin_popcount(i >> start_level) % 2 == 0;
                                     if ((value[root] < value[spare]) != ascend) // exchange 
                                     {
@@ -195,7 +200,6 @@ namespace SIFT
                                         (int p, int q) = (left[root], rigt[root]);
                                         while (p != -1)
                                         {
-                                            Print("c");
                                             if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
                                             {
                                                 (value[p], value[q]) = (value[q], value[p]);
@@ -210,9 +214,9 @@ namespace SIFT
                                         (roots[origin_id * 2], spares[origin_id * 2]) = (left[root], root);
                                         (roots[origin_id * 2 + 1], spares[origin_id * 2 + 1]) = (rigt[root], spare);
                                     }
-                                    Print("b");
                                 }
                             }
+                            //PrintTree(1, 0);
                         }
                     }
                     else
@@ -375,7 +379,6 @@ namespace SIFT
                             }
                         }
                     }
-                    Print("hi");
                 }
                 public void Sort()
                 {

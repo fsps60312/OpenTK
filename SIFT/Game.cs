@@ -18,7 +18,7 @@ namespace SIFT
             //object a = new int();
             //Console.WriteLine(a.GetType());
             ////return;
-            int power = 3;
+            int power = 10;
             int n = 1 << power;
             GPUIntArray s_gpu = new GPUIntArray(n);
             List<int> s_cpu = new List<int>(n);for (int i = 0; i < n; i++) s_cpu.Add(0);
