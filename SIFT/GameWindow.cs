@@ -38,7 +38,7 @@ namespace SIFT
             : base(1280, 720, GraphicsMode.Default, "OpenTK Intro",
             GameWindowFlags.Default, DisplayDevice.Default,
             // ask for an OpenGL 3.0 forward compatible context
-            4, 6, GraphicsContextFlags.ForwardCompatible)
+            3, 0, GraphicsContextFlags.ForwardCompatible)
         {
             Console.WriteLine("gl version: " + GL.GetString(StringName.Version));
             texture_program = new MyGL.Program(

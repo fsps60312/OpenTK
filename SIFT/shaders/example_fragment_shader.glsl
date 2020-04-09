@@ -1,4 +1,4 @@
-﻿#version 460
+﻿#version 450
 
 // Input data (from the vertex shaders)
 in vec2 UV;

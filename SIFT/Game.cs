@@ -18,25 +18,29 @@ namespace SIFT
             //object a = new int();
             //Console.WriteLine(a.GetType());
             ////return;
-            int n = 1<<27;
+            int n = 2;
             GPUArray<int> s_gpu = new GPUArray<int>(n);
             List<int> s_cpu = new List<int>(n);for (int i = 0; i < n; i++) s_cpu.Add(0);
+            GL.Finish();
             Print("GPU time:", Timing(() =>
             {
-                for (int i = 0; i < 1; i++)
+                for (int i = 0; i < 1000; i++)
                 {
-                    Print("i =", i);
+                    //Print("i =", i);
                     s_gpu.Random();
                     s_gpu.Sort();
+                    Assert(s_gpu.IsSorted());
                 }
+                GL.Finish();
             }));
             Print("CPU time:", Timing(() =>
             {
-                for (int i = 0; i < 1; i++)
+                for (int i = 0; i < 1000; i++)
                 {
-                    Print("i =", i);
+                    //Print("i =", i);
                     s_cpu.Random();
                     s_cpu.Sort();
+                    Assert(s_cpu.IsSorted());
                 }
             }));
             Print("finish");

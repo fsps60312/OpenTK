@@ -47,7 +47,7 @@ namespace SIFT
             new Shader($"SIFT.shaders.contains_value.glsl", p => p.Uniform("value", value)).QueueForRun(Length);
             return flag[0] == 1;
         }
-        public void Sort()
+        private void BitonicSort()
         {
             int n = this.Length;
             GPUArray<int>
@@ -77,6 +77,7 @@ namespace SIFT
                 Param.Array(this, t, l, r, buf1, shift); new Shader("SIFT.shaders.bitonic_merge.glsl", p => p.Uniform("level", level)).QueueForRun(n);
                 Param.Array(buf1, this); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
             });
+            //OpenTK.Graphics.OpenGL.GL.Finish(); Console.WriteLine("a");
             while (!l.IsRange()) tree_push();
             int max_depth = cur_depth;
             while (cur_depth > 0)
@@ -89,12 +90,18 @@ namespace SIFT
                     bitonic_merge(level);
                     tree_push(); level++;
                 }
+                //OpenTK.Graphics.OpenGL.GL.Finish(); Console.WriteLine("b");
                 while (cur_depth > sort_depth)
                 {
                     tree_pull();
                 }
+                //OpenTK.Graphics.OpenGL.GL.Finish(); Console.WriteLine("c");
             }
-            if (!this.IsSorted()) throw new Exception();
+            //if (!this.IsSorted()) throw new Exception();
+        }
+        public void Sort()
+        {
+            BitonicSort();
         }
         public GPUArray<T> Clone()
         {

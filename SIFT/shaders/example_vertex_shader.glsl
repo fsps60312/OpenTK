@@ -1,4 +1,4 @@
-﻿#version 460
+﻿#version 450
 
 // Input data (from code)
 layout(location = 0) in vec2 vertexPosition_model;
