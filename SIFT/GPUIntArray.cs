@@ -133,52 +133,13 @@ namespace SIFT
                     PrintTree(root);
                     Print(spare);
                 }
-                private void BiMerge(int root, int spare, bool ascend)
-                {
-                    if (root == -1) return;
-                    if ((value[root] < value[spare]) != ascend) // exchange 
-                    {
-                        (value[root], value[spare]) = (value[spare], value[root]);
-                        (left[root], rigt[root]) = (rigt[root], left[root]);
-                    }
-                    (int p, int q) = (left[root], rigt[root]);
-                    while (p != -1)
-                    {
-                        if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
-                        {
-                            (value[p], value[q]) = (value[q], value[p]);
-                            (left[p], left[q]) = (left[q], left[p]);
-                            (p, q) = (rigt[p], rigt[q]);
-                        }
-                        else // go left
-                        {
-                            (p, q) = (left[p], left[q]);
-                        }
-                    }
-                    BiMerge(left[root], root, ascend);
-                    BiMerge(rigt[root], spare, ascend);
-                }
-                private void BiSort(int root, int spare, bool ascend)
-                {
-                    if (root == -1) return;
-                    BiSort(left[root], root, true);
-                    BiSort(rigt[root], spare, false);
-                    BiMerge(root, spare, ascend);
-                }
-                //private void Flatten(int root, int l, int r)
-                //{
-                //    int mid = (l + r) / 2;
-                //    output[mid] = value[root];
-                //    if (l == r) return;
-                //    Flatten(left[root], l, mid - 1);
-                //    Flatten(rigt[root], mid + 1, r);
-                //}
                 private void PMerge(int n)
                 {
                     Assert(__builtin_popcount(n) == 1);
-                    for(int id=0;id<n;id++)
+                    for (int id=0;id<n;id++)
                     {
                         if (id == 0) continue;
+                        (left[id], rigt[id]) = ((id << 1) | 1) > n - 1 ? (-1, -1) : (id << 1, (id << 1) | 1);
                         roots[id] = id;
                         spares[id] = id >> (__builtin_ctz(~id) + 1);
                     }
@@ -241,10 +202,6 @@ namespace SIFT
                     int n = value.Length;
                     if (n <= 1) return;
                     Assert(__builtin_popcount(n) == 1);
-                    for (int i = 1; i < n; i++)
-                    {
-                        (left[i], rigt[i]) = ((i << 1) | 1) > n - 1 ? (-1, -1) : (i << 1, (i << 1) | 1);
-                    }
                     PMerge(n);
                 }
             }
