@@ -56,7 +56,7 @@ namespace SIFT
             #region Sort
             public void Sort()
             {
-                new AdaptiveBitonicSorter(this).Sort();
+                new ParallelAdaptiveBitonicSorter(this).Sort();
             }
             private void BitonicSort()
             {
@@ -169,174 +169,213 @@ namespace SIFT
                 }
                 private void PMerge(int n)
                 {
-                    Assert(n == 8);
+                    Assert(__builtin_popcount(n) == 1);
                     int[] roots = new int[n], spares = new int[n];
-                    //////////////////////////////////////////////////////
+                    if (false)
                     {
-                        int level = 1;
-                        for (int id = 0; id < n / 2; id++)
+                        for (int start_level = 1; start_level < __builtin_ctz(n); start_level++)
                         {
-                            int i = id * 2;
-                            int root = id + n / 2;
-                            int spare = root >> (__builtin_ctz(~root) + 1); // 10101001111 -> 101010
-                            bool ascend = __builtin_popcount(i >> level) % 2 == 0;
-                            if ((value[root] < value[spare]) != ascend) // exchange 
+                            for (int level = start_level; level >= 1; level--)
                             {
-                                (value[root], value[spare]) = (value[spare], value[root]);
-                                (left[root], rigt[root]) = (rigt[root], left[root]);
+                                for (int id = 0; id < (n >> level); id++)
+                                {
+                                    Print("a");
+                                    int i = (id << level) + (1 << (level - 1)) - 1;
+                                    int origin_id = id + (n >> level);
+                                    int root = roots[origin_id];
+                                    int spare = spares[origin_id]; // 10101001111 -> 101010
+                                    bool ascend = __builtin_popcount(i >> start_level) % 2 == 0;
+                                    if ((value[root] < value[spare]) != ascend) // exchange 
+                                    {
+                                        (value[root], value[spare]) = (value[spare], value[root]);
+                                        (left[root], rigt[root]) = (rigt[root], left[root]);
+                                    }
+                                    if (level > 1)
+                                    {
+                                        (int p, int q) = (left[root], rigt[root]);
+                                        while (p != -1)
+                                        {
+                                            Print("c");
+                                            if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
+                                            {
+                                                (value[p], value[q]) = (value[q], value[p]);
+                                                (left[p], left[q]) = (left[q], left[p]);
+                                                (p, q) = (rigt[p], rigt[q]);
+                                            }
+                                            else // go left
+                                            {
+                                                (p, q) = (left[p], left[q]);
+                                            }
+                                        }
+                                        (roots[origin_id * 2], spares[origin_id * 2]) = (left[root], root);
+                                        (roots[origin_id * 2 + 1], spares[origin_id * 2 + 1]) = (rigt[root], spare);
+                                    }
+                                    Print("b");
+                                }
                             }
                         }
                     }
-                    //////////////////////////////////////////////////////
+                    else
                     {
-                        //   [1]
-                        // [2 , 3]
-                        //[4,5,6,7]
-                        // 1234567
-                        int level = 2;
-                        for (int id = 0; id < n / 4; id++)
+                        //////////////////////////////////////////////////////
                         {
-                            int i = id * 4 + 1;
-                            int root = id + n / 4;
-                            int spare = root >> (__builtin_ctz(~root) + 1); // 10101001111 -> 101010
-                            bool ascend = __builtin_popcount(i >> level) % 2 == 0;
-                            if ((value[root] < value[spare]) != ascend) // exchange 
+                            int level = 1;
+                            for (int id = 0; id < n / 2; id++)
                             {
-                                (value[root], value[spare]) = (value[spare], value[root]);
-                                (left[root], rigt[root]) = (rigt[root], left[root]);
-                            }
-                            (int p, int q) = (left[root], rigt[root]);
-                            while (p != -1)
-                            {
-                                if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
+                                int i = id * 2;
+                                int root = id + n / 2;
+                                int spare = root >> (__builtin_ctz(~root) + 1); // 10101001111 -> 101010
+                                bool ascend = __builtin_popcount(i >> level) % 2 == 0;
+                                if ((value[root] < value[spare]) != ascend) // exchange 
                                 {
-                                    (value[p], value[q]) = (value[q], value[p]);
-                                    (left[p], left[q]) = (left[q], left[p]);
-                                    (p, q) = (rigt[p], rigt[q]);
+                                    (value[root], value[spare]) = (value[spare], value[root]);
+                                    (left[root], rigt[root]) = (rigt[root], left[root]);
                                 }
-                                else // go left
-                                {
-                                    (p, q) = (left[p], left[q]);
-                                }
-                            }
-                            (roots[root * 2], spares[root * 2]) = (left[root], root);
-                            (roots[root * 2 + 1], spares[root * 2 + 1]) = (rigt[root], spare);
-                            //BiMerge(left[root], root, ascend);
-                            //BiMerge(rigt[root], spare, ascend);
-                        }
-                    }
-                    {
-                        int level = 1;
-                        for (int id = 0; id < n / 2; id++)
-                        {
-                            int i = id * 2;
-                            int root = roots[id + n / 2];
-                            int spare = spares[id + n / 2];
-                            bool ascend = __builtin_popcount(i >> level) % 2 == 0;
-                            if ((value[root] < value[spare]) != ascend) // exchange 
-                            {
-                                (value[root], value[spare]) = (value[spare], value[root]);
-                                (left[root], rigt[root]) = (rigt[root], left[root]);
                             }
                         }
-                    }
-                    //////////////////////////////////////////////////////
-                    {
-                        //   [1]
-                        // [2 , 3]
-                        //[4,5,6,7]
-                        // 1234567
-                        int level = 3;
-                        for (int id = 0; id < n / 8; id++)
+                        //////////////////////////////////////////////////////
                         {
-                            int i = id * 8 + 3;
-                            int origin_id = id + n / 8;
-                            int root = origin_id;
-                            int spare = root >> (__builtin_ctz(~root) + 1); // 10101001111 -> 101010
-                            bool ascend = __builtin_popcount(i >> level) % 2 == 0;
-                            if ((value[root] < value[spare]) != ascend) // exchange 
+                            //   [1]
+                            // [2 , 3]
+                            //[4,5,6,7]
+                            // 1234567
+                            int level = 2;
+                            for (int id = 0; id < n / 4; id++)
                             {
-                                (value[root], value[spare]) = (value[spare], value[root]);
-                                (left[root], rigt[root]) = (rigt[root], left[root]);
-                            }
-                            (int p, int q) = (left[root], rigt[root]);
-                            while (p != -1)
-                            {
-                                if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
+                                int i = id * 4 + 1;
+                                int root = id + n / 4;
+                                int spare = root >> (__builtin_ctz(~root) + 1); // 10101001111 -> 101010
+                                bool ascend = __builtin_popcount(i >> level) % 2 == 0;
+                                if ((value[root] < value[spare]) != ascend) // exchange 
                                 {
-                                    (value[p], value[q]) = (value[q], value[p]);
-                                    (left[p], left[q]) = (left[q], left[p]);
-                                    (p, q) = (rigt[p], rigt[q]);
+                                    (value[root], value[spare]) = (value[spare], value[root]);
+                                    (left[root], rigt[root]) = (rigt[root], left[root]);
                                 }
-                                else // go left
+                                (int p, int q) = (left[root], rigt[root]);
+                                while (p != -1)
                                 {
-                                    (p, q) = (left[p], left[q]);
+                                    if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
+                                    {
+                                        (value[p], value[q]) = (value[q], value[p]);
+                                        (left[p], left[q]) = (left[q], left[p]);
+                                        (p, q) = (rigt[p], rigt[q]);
+                                    }
+                                    else // go left
+                                    {
+                                        (p, q) = (left[p], left[q]);
+                                    }
                                 }
+                                (roots[root * 2], spares[root * 2]) = (left[root], root);
+                                (roots[root * 2 + 1], spares[root * 2 + 1]) = (rigt[root], spare);
+                                //BiMerge(left[root], root, ascend);
+                                //BiMerge(rigt[root], spare, ascend);
                             }
-                            (roots[origin_id * 2], spares[origin_id * 2]) = (left[root], root);
-                            (roots[origin_id * 2 + 1], spares[origin_id * 2 + 1]) = (rigt[root], spare);
-                            //BiMerge(left[root], root, ascend);
-                            //BiMerge(rigt[root], spare, ascend);
-                        }
-                    }
-                    {
-                        //   [1]
-                        // [2 , 3]
-                        //[4,5,6,7]
-                        // 1234567
-                        int level = 2;
-                        for (int id = 0; id < n / 4; id++)
-                        {
-                            int i = id * 4 + 1;
-                            int origin_id = id + n / 4;
-                            int root = roots[origin_id];
-                            int spare = spares[origin_id]; // 10101001111 -> 101010
-                            bool ascend = __builtin_popcount(i >> level) % 2 == 0;
-                            if ((value[root] < value[spare]) != ascend) // exchange 
+                            for (int id = 0; id < n / 2; id++)
                             {
-                                (value[root], value[spare]) = (value[spare], value[root]);
-                                (left[root], rigt[root]) = (rigt[root], left[root]);
-                            }
-                            (int p, int q) = (left[root], rigt[root]);
-                            while (p != -1)
-                            {
-                                if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
+                                int i = id * 2;
+                                int root = roots[id + n / 2];
+                                int spare = spares[id + n / 2];
+                                bool ascend = __builtin_popcount(i >> level) % 2 == 0;
+                                if ((value[root] < value[spare]) != ascend) // exchange 
                                 {
-                                    (value[p], value[q]) = (value[q], value[p]);
-                                    (left[p], left[q]) = (left[q], left[p]);
-                                    (p, q) = (rigt[p], rigt[q]);
+                                    (value[root], value[spare]) = (value[spare], value[root]);
+                                    (left[root], rigt[root]) = (rigt[root], left[root]);
                                 }
-                                else // go left
-                                {
-                                    (p, q) = (left[p], left[q]);
-                                }
-                            }
-                            (roots[origin_id * 2], spares[origin_id * 2]) = (left[root], root);
-                            (roots[origin_id * 2 + 1], spares[origin_id * 2 + 1]) = (rigt[root], spare);
-                            //BiMerge(left[root], root, ascend);
-                            //BiMerge(rigt[root], spare, ascend);
-                        }
-                    }
-                    {
-                        //   [1]
-                        // [2 , 3]
-                        //[4,5,6,7]
-                        // 1234567
-                        int level = 1;
-                        for (int id = 0; id < n / 2; id++)
-                        {
-                            int i = id * 2;
-                            int origin_id = id + n / 2;
-                            int root = roots[origin_id];
-                            int spare = spares[origin_id]; // 10101001111 -> 101010
-                            bool ascend = __builtin_popcount(i >> level) % 2 == 0;
-                            if ((value[root] < value[spare]) != ascend) // exchange 
-                            {
-                                (value[root], value[spare]) = (value[spare], value[root]);
-                                (left[root], rigt[root]) = (rigt[root], left[root]);
                             }
                         }
+                        //////////////////////////////////////////////////////
+                        {
+                            //   [1]
+                            // [2 , 3]
+                            //[4,5,6,7]
+                            // 1234567
+                            int level = 3;
+                            for (int id = 0; id < n / 8; id++)
+                            {
+                                int i = id * 8 + 3;
+                                int origin_id = id + n / 8;
+                                int root = origin_id;
+                                int spare = root >> (__builtin_ctz(~root) + 1); // 10101001111 -> 101010
+                                bool ascend = __builtin_popcount(i >> level) % 2 == 0;
+                                if ((value[root] < value[spare]) != ascend) // exchange 
+                                {
+                                    (value[root], value[spare]) = (value[spare], value[root]);
+                                    (left[root], rigt[root]) = (rigt[root], left[root]);
+                                }
+                                (int p, int q) = (left[root], rigt[root]);
+                                while (p != -1)
+                                {
+                                    if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
+                                    {
+                                        (value[p], value[q]) = (value[q], value[p]);
+                                        (left[p], left[q]) = (left[q], left[p]);
+                                        (p, q) = (rigt[p], rigt[q]);
+                                    }
+                                    else // go left
+                                    {
+                                        (p, q) = (left[p], left[q]);
+                                    }
+                                }
+                                (roots[origin_id * 2], spares[origin_id * 2]) = (left[root], root);
+                                (roots[origin_id * 2 + 1], spares[origin_id * 2 + 1]) = (rigt[root], spare);
+                                //BiMerge(left[root], root, ascend);
+                                //BiMerge(rigt[root], spare, ascend);
+                            }
+                            //   [1]
+                            // [2 , 3]
+                            //[4,5,6,7]
+                            // 1234567
+                            for (int id = 0; id < n / 4; id++)
+                            {
+                                int i = id * 4 + 1;
+                                int origin_id = id + n / 4;
+                                int root = roots[origin_id];
+                                int spare = spares[origin_id]; // 10101001111 -> 101010
+                                bool ascend = __builtin_popcount(i >> level) % 2 == 0;
+                                if ((value[root] < value[spare]) != ascend) // exchange 
+                                {
+                                    (value[root], value[spare]) = (value[spare], value[root]);
+                                    (left[root], rigt[root]) = (rigt[root], left[root]);
+                                }
+                                (int p, int q) = (left[root], rigt[root]);
+                                while (p != -1)
+                                {
+                                    if ((value[p] < value[q]) != ascend) // swap left tree of p & q, go right
+                                    {
+                                        (value[p], value[q]) = (value[q], value[p]);
+                                        (left[p], left[q]) = (left[q], left[p]);
+                                        (p, q) = (rigt[p], rigt[q]);
+                                    }
+                                    else // go left
+                                    {
+                                        (p, q) = (left[p], left[q]);
+                                    }
+                                }
+                                (roots[origin_id * 2], spares[origin_id * 2]) = (left[root], root);
+                                (roots[origin_id * 2 + 1], spares[origin_id * 2 + 1]) = (rigt[root], spare);
+                                //BiMerge(left[root], root, ascend);
+                                //BiMerge(rigt[root], spare, ascend);
+                            }
+                            //   [1]
+                            // [2 , 3]
+                            //[4,5,6,7]
+                            // 1234567
+                            for (int id = 0; id < n / 2; id++)
+                            {
+                                int i = id * 2;
+                                int origin_id = id + n / 2;
+                                int root = roots[origin_id];
+                                int spare = spares[origin_id]; // 10101001111 -> 101010
+                                bool ascend = __builtin_popcount(i >> level) % 2 == 0;
+                                if ((value[root] < value[spare]) != ascend) // exchange 
+                                {
+                                    (value[root], value[spare]) = (value[spare], value[root]);
+                                    (left[root], rigt[root]) = (rigt[root], left[root]);
+                                }
+                            }
+                        }
                     }
+                    Print("hi");
                 }
                 public void Sort()
                 {
