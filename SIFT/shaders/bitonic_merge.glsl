@@ -1,4 +1,4 @@
-﻿#version 460
+﻿#version 450
 
 layout(std430,  binding = 0) readonly buffer s    { int buf_s[]; };
 layout(std430,  binding = 1) readonly buffer t    { int buf_t[]; };
