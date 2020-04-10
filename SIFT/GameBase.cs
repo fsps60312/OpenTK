@@ -26,7 +26,7 @@ namespace SIFT
             action.Invoke();
             return DateTime.Now - start_time;
         }
-        protected static void Assert(bool condition)
+        protected static void Assert(bool condition = false)
         {
             if (!condition)
             {

@@ -80,7 +80,6 @@
     <Compile Include="Game.cs" />
     <Compile Include="GPUArray.cs" />
     <Compile Include="GPUImage.cs" />
-    <Compile Include="Param.cs" />
     <Compile Include="GameBase.cs" />
     <Compile Include="ShaderBase.cs" />
     <Compile Include="GameWindow.cs" />
@@ -134,7 +133,7 @@
     <EmbeddedResource Include="shaders\copy.glsl" />
     <EmbeddedResource Include="shaders\bitonic_tree_push.glsl" />
     <EmbeddedResource Include="shaders\bitonic_tree_pull_1.glsl" />
-    <EmbeddedResource Include="shaders\all_equal.glsl" />
+    <EmbeddedResource Include="shaders\is_value.glsl" />
     <EmbeddedResource Include="shaders\elementwise_equal.glsl" />
     <EmbeddedResource Include="shaders\bitonic_tree_pull_2.glsl" />
   </ItemGroup>

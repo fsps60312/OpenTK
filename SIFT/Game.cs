@@ -14,7 +14,7 @@ namespace SIFT
         //GPUArray<int> h = new GPUArray<int>(100000000);
         public Game(GameWindow window):base(window)
         {
-            Param.Image(Window.Canvas); new Shader2D("SIFT.shaders.plain_color.glsl").Run(Window.Width, Window.Height);
+            new Shader2D("SIFT.shaders.plain_color.glsl").Run(Window.Width, Window.Height, Window.Canvas);
             //object a = new int();
             //Console.WriteLine(a.GetType());
             ////return;
@@ -22,6 +22,11 @@ namespace SIFT
             int n = 1 << power;
             GPUIntArray s_gpu = new GPUIntArray(n);
             List<int> s_cpu = new List<int>(n);for (int i = 0; i < n; i++) s_cpu.Add(0);
+
+            Print(s_gpu.IsValue(7122));
+            s_gpu.Value(7122);
+            Print(s_gpu.IsValue(7122));
+
             GL.Finish();
             TimeSpan a, b;
             Print("GPU time:", a=Timing(() =>

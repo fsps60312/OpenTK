@@ -12,53 +12,47 @@ namespace SIFT
             public GPUIntArray(GPUIntArray array) : base(array) { }
             public void Random()
             {
-                Param.Array(this);
-                new Shader($"SIFT.shaders.fill_random.glsl", p => p.Uniform("initial_seed", (uint)Rand.Next())).QueueForRun(Length);
+                new Shader($"SIFT.shaders.fill_random.glsl").QueueForRun(Length, this, ("initial_seed", (uint)Rand.Next()));
             }
             public void Range()
             {
-                Param.Array(this);
-                new Shader($"SIFT.shaders.fill_range.glsl").QueueForRun(Length);
+                new Shader($"SIFT.shaders.fill_range.glsl").QueueForRun(Length, this);
             }
             public bool IsRange()
             {
                 var flag = new GPUIntArray(new[] { 1 });
-                Param.Array(this, flag);
-                new Shader($"SIFT.shaders.is_range.glsl").QueueForRun(Length);
+                new Shader($"SIFT.shaders.is_range.glsl").QueueForRun(Length, this, flag);
                 return flag[0] == 1;
             }
             public bool IsSorted()
             {
                 var flag = new GPUIntArray(new[] { 1 });
-                Param.Array(this, flag);
-                new Shader($"SIFT.shaders.is_sorted.glsl").QueueForRun(Length);
+                new Shader($"SIFT.shaders.is_sorted.glsl").QueueForRun(Length, this, flag);
                 return flag[0] == 1;
             }
-            public bool AllEqual(int value)
+            public bool IsValue(int value)
             {
                 var flag = new GPUIntArray(new[] { 1 });
-                Param.Array(this, flag);
-                new Shader($"SIFT.shaders.all_equal.glsl", p => p.Uniform("value", value)).QueueForRun(Length);
+                new Shader($"SIFT.shaders.is_value.glsl").QueueForRun(Length, this, flag, ("value", value));
                 return flag[0] == 1;
             }
             public void Value(int value)
             {
-                Param.Array(this);
-                new Shader($"SIFT.shaders.fill_value.glsl", p => p.Uniform("value", value)).QueueForRun(Length);
+                new Shader($"SIFT.shaders.fill_value.glsl").QueueForRun(Length, this, ("value", value));
             }
             public bool Contains(int value)
             {
                 var flag = new GPUIntArray(new[] { 0 });
-                Param.Array(this, flag);
-                new Shader($"SIFT.shaders.contains_value.glsl", p => p.Uniform("value", value)).QueueForRun(Length);
+                new Shader($"SIFT.shaders.contains_value.glsl").QueueForRun(Length, this, flag, ("value", value));
                 return flag[0] == 1;
             }
             #region Sort
             public void Sort()
             {
+                Assert(__builtin_popcount(this.Length) == 1);
                 new ParallelAdaptiveBitonicSorter(this).Sort();
             }
-            private void BitonicSort()
+            private void BitonicSortVariableLength()
             {
                 int n = this.Length;
                 GPUIntArray
@@ -72,21 +66,21 @@ namespace SIFT
                 int cur_depth = 0;
                 var tree_push = new Action(() =>
                 {
-                    Param.Array(t, l, r, shift); new Shader("SIFT.shaders.bitonic_tree_push.glsl").QueueForRun(n);
+                    new Shader("SIFT.shaders.bitonic_tree_push.glsl").QueueForRun(n, t, l, r, shift);
                     cur_depth++;
                 });
                 var tree_pull = new Action(() =>
                 {
-                    Param.Array(t, l, r, buf1, buf2); new Shader("SIFT.shaders.bitonic_tree_pull_1.glsl").QueueForRun(n);
-                    Param.Array(buf1, l); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
-                    Param.Array(buf2, r); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
-                    Param.Array(t); new Shader("SIFT.shaders.bitonic_tree_pull_2.glsl").QueueForRun(n);
+                    new Shader("SIFT.shaders.bitonic_tree_pull_1.glsl").QueueForRun(n, t, l, r, buf1, buf2);
+                    new Shader("SIFT.shaders.copy.glsl").QueueForRun(n, buf1, l);
+                    new Shader("SIFT.shaders.copy.glsl").QueueForRun(n, buf2, r);
+                    new Shader("SIFT.shaders.bitonic_tree_pull_2.glsl").QueueForRun(n, t);
                     cur_depth--;
                 });
                 var bitonic_merge = new Action<int>(level =>
                 {
-                    Param.Array(this, t, l, r, buf1, shift); new Shader("SIFT.shaders.bitonic_merge.glsl", p => p.Uniform("level", level)).QueueForRun(n);
-                    Param.Array(buf1, this); new Shader("SIFT.shaders.copy.glsl").QueueForRun(n);
+                    new Shader("SIFT.shaders.bitonic_merge.glsl").QueueForRun(n, ("level", level), this, t, l, r, buf1, shift);
+                    new Shader("SIFT.shaders.copy.glsl").QueueForRun(n, buf1, this);
                 });
                 //OpenTK.Graphics.OpenGL.GL.Finish(); Console.WriteLine("a");
                 while (!l.IsRange()) tree_push();

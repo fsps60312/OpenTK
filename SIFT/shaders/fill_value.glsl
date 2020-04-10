@@ -1,4 +1,4 @@
-﻿#version 460
+﻿#version 450
 
 // warning: only length of power of 2 supported
 

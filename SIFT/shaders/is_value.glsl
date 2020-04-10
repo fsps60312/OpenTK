@@ -1,4 +1,4 @@
-﻿#version 460
+﻿#version 450
 
 layout(std430, binding = 0) buffer s    { int buf_s[]; };
 layout(std430, binding = 1) buffer flag { int buf_flag; };
