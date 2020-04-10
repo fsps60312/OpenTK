@@ -49,8 +49,34 @@ namespace SIFT
             #region Sort
             public void Sort()
             {
-                Assert(__builtin_popcount(this.Length) == 1);
-                new ParallelAdaptiveBitonicSorter(this).Sort();
+                new ParallelBitonicSorter(this).Sort();
+            }
+            class ParallelBitonicSorter
+            {
+                GPUIntArray value;
+                GPUIntArray left, rigt, output;
+                public ParallelBitonicSorter(GPUIntArray array)
+                {
+                    this.value = array;
+                    left = new GPUIntArray(array.Length);
+                    rigt = new GPUIntArray(array.Length);
+                    output = new GPUIntArray(array.Length);
+                }
+                public void Sort()
+                {
+                    int n = value.Length;
+                    if (n <= 1) return;
+                    int num_levels = (__builtin_popcount(n) == 1 ? 31 : 32) - __builtin_clz(n);
+                    left.Value(0); rigt.Value(n - 1);
+                    for(int start_level=1;start_level<=num_levels;start_level++)
+                    {
+                        for(int level=start_level;level>=1;level--)
+                        {
+                            new Shader("SIFT.shaders.bitonic_merge.glsl").QueueForRun(n, ("start_level", start_level), ("level", level), value, left, rigt, output);
+                            value.Swap(output);
+                        }
+                    }
+                }
             }
             private void BitonicSortVariableLength()
             {
