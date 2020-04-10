@@ -133,31 +133,27 @@ namespace SIFT
                     PrintTree(root);
                     Print(spare);
                 }
-                private void PMerge(int n,int length)
+                private void PMerge(int n)
                 {
                     Assert(__builtin_popcount(n) == 1);
-                    for (int thread_id = 0; thread_id < length - 1; thread_id++)
+                    for (int id=0;id<n;id++)
                     {
-                        int i = thread_id;
-                        int cto = __builtin_ctz(~i);
-                        int shift = (1 << (cto - 1));
-                        (left[i], rigt[i]) = cto == 0 ? /*leaf*/ (-1, -1) : (i - shift, i + shift);
-                        roots[i] = i;
-                        spares[i] = i + (1 << cto);
+                        if (id == 0) continue;
+                        (left[id], rigt[id]) = ((id << 1) | 1) > n - 1 ? (-1, -1) : (id << 1, (id << 1) | 1);
+                        roots[id] = id;
+                        spares[id] = id >> (__builtin_ctz(~id) + 1);
                     }
                     for (int start_level = 1; start_level <= __builtin_ctz(n); start_level++)
                     {
-                        //PrintTree(n / 2 - 1, n - 1);
                         for (int level = start_level; level >= 1; level--)
                         {
                             int id_max = n >> level;
-                            for (int thread_id = 0; thread_id < id_max; thread_id++)
+                            for (int id = 0; id < id_max; id++)
                             {
-                                int i = (thread_id << level) + (1 << (level - 1)) - 1;
-                                int origin_id = i; // origin location on binary tree (before any node swaps)
+                                int i = (id << level) + (1 << (level - 1)) - 1;
+                                int origin_id = id + (n >> level); // origin location on binary tree (before any node swaps)
                                 int root = roots[origin_id];
                                 int spare = spares[origin_id]; // 10101001111 -> 101010
-                                //Print("i",i,"root", root, "spare", spare);
                                 bool ascend = __builtin_popcount(i >> start_level) % 2 == 0;
                                 if ((value[root] < value[spare]) != ascend) // exchange 
                                 {
@@ -180,34 +176,33 @@ namespace SIFT
                                             (p, q) = (left[p], left[q]);
                                         }
                                     }
-                                    int shift = 1 << (level - 2);
-                                    (roots[origin_id - shift], spares[origin_id - shift]) = (left[root], root);
-                                    (roots[origin_id + shift], spares[origin_id + shift]) = (rigt[root], spare);
+                                    (roots[origin_id * 2], spares[origin_id * 2]) = (left[root], root);
+                                    (roots[origin_id * 2 + 1], spares[origin_id * 2 + 1]) = (rigt[root], spare);
                                 }
                             }
                         }
+                        //PrintTree(1, 0);
                     }
                     for (int level = __builtin_ctz(n); level >= 1; level--)
                     {
                         int id_max = n >> level;
-                        for (int thread_id = 0; thread_id < id_max; thread_id++)
+                        for (int id = 0; id < id_max; id++)
                         {
-                            int i = (thread_id << level) + (1 << (level - 1)) - 1;
-                            int origin_id = i; // origin location on binary tree (before any node swaps)
+                            int i = (id << level) + (1 << (level - 1)) - 1;
+                            int origin_id = id + (n >> level);
                             int root = roots[origin_id];
                             spares[i] = value[root];
                         }
                     }
-                    spares[n - 1] = value[n - 1];
+                    spares[n - 1] = value[0];
                     value.Swap(spares);
                 }
                 public void Sort()
                 {
-                    int length = value.Length;
-                    if (length <= 1) return;
-                    int n = 1 << (__builtin_popcount(length) == 1 ? 31 - __builtin_clz(length) : 32 - __builtin_clz(length));
-                    //Print(n, length,__builtin_clz(length),__builtin_ctz(length));
-                    PMerge(n, length);
+                    int n = value.Length;
+                    if (n <= 1) return;
+                    Assert(__builtin_popcount(n) == 1);
+                    PMerge(n);
                 }
             }
             class AdaptiveBitonicSorter

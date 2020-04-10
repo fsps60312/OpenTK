@@ -31,7 +31,6 @@ namespace SIFT
             if (!condition)
             {
                 Print("assertion failed.");
-                Print(string.Join("", new System.Diagnostics.StackTrace(true).GetFrames().Select(f => f.ToString())));
                 Console.ReadLine();
                 throw new Exception("assertion failed.");
             }
@@ -71,17 +70,15 @@ namespace SIFT
             for (int i = 0; i < l.Count; i++) if (l[i] != i) return false;
             return true;
         }
-        protected static int __builtin_clz(int _v)
+        protected static int __builtin_clz(int v)
         {
-            uint v = (uint)_v;
             if (v == 0) return 32;
             int ret = 1;
             while ((v << ret >> ret) == v) ret++;
             return ret - 1;
         }
-        protected static int __builtin_ctz(int _v)
+        protected static int __builtin_ctz(int v)
         {
-            uint v = (uint)_v;
             if (v == 0) return 32;
             int ret = 1;
             while ((v >> ret << ret) == v) ret++;
