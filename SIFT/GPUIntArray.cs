@@ -112,14 +112,16 @@ namespace SIFT
             }
             class ParallelAdaptiveBitonicSorter
             {
-                GPUIntArray value, left, rigt, roots,spares;
+                GPUIntArray value, left, rigt, roots, spares;
                 public ParallelAdaptiveBitonicSorter(GPUIntArray array)
                 {
+                    int n = array.Length;
+                    Assert(__builtin_popcount(n) == 1);
                     this.value = array;
-                    left = new GPUIntArray(array.Length);
-                    rigt = new GPUIntArray(array.Length);
-                    roots = new GPUIntArray(array.Length);
-                    spares = new GPUIntArray(array.Length);
+                    left = new GPUIntArray(n);
+                    rigt = new GPUIntArray(n);
+                    roots = new GPUIntArray(n);
+                    spares = new GPUIntArray(n);
                 }
                 private void PrintTree(int root)
                 {
@@ -133,10 +135,10 @@ namespace SIFT
                     PrintTree(root);
                     Print(spare);
                 }
-                private void PMerge(int n,int length)
+                private void PMerge(int n)
                 {
                     Assert(__builtin_popcount(n) == 1);
-                    for (int thread_id = 0; thread_id < length - 1; thread_id++)
+                    for (int thread_id = 0; thread_id < n - 1; thread_id++)
                     {
                         int i = thread_id;
                         int cto = __builtin_ctz(~i);
@@ -203,11 +205,11 @@ namespace SIFT
                 }
                 public void Sort()
                 {
-                    int length = value.Length;
-                    if (length <= 1) return;
-                    int n = 1 << (__builtin_popcount(length) == 1 ? 31 - __builtin_clz(length) : 32 - __builtin_clz(length));
+                    int n = value.Length;
+                    if (n <= 1) return;
+                    Assert(__builtin_popcount(n) == 1);
                     //Print(n, length,__builtin_clz(length),__builtin_ctz(length));
-                    PMerge(n, length);
+                    PMerge(n);
                 }
             }
             class AdaptiveBitonicSorter
