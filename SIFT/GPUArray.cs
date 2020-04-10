@@ -21,7 +21,7 @@ namespace SIFT
             public GPUArray(T[] data) { Data(data); }
             public GPUArray(GPUArray<T> array) : this(array.Length)
             {
-                new Shader($"SIFT.shaders.copy.glsl").QueueForRun(Length, array, this);
+                new Shader($"SIFT.shaders.copy.glsl").QueueForRunInSequence(Length, array, this);
             }
             public void Data(T[] data)
             {

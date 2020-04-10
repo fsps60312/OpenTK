@@ -18,8 +18,7 @@ namespace SIFT
             //object a = new int();
             //Console.WriteLine(a.GetType());
             ////return;
-            int power = 10;
-            int n = 1 << power;
+            int n = 10000000;
             GPUIntArray s_gpu = new GPUIntArray(n);
             List<int> s_cpu = new List<int>(n);for (int i = 0; i < n; i++) s_cpu.Add(0);
 
@@ -28,30 +27,28 @@ namespace SIFT
             Print(s_gpu.IsValue(7122));
 
             GL.Finish();
-            TimeSpan a, b;
-            Print("GPU time:", a=Timing(() =>
-            {
-                for (int i = 0; i < n * power * 11; i++)
-                {
-                    s_gpu[Rand.Next(n)] = Rand.Next();
-                }
-                GL.Finish();
-            }));
-            Print("GPU time:", b=Timing(() =>
+            //Print("GPU time:", a=Timing(() =>
+            //{
+            //    for (int i = 0; i < n * power * 11; i++)
+            //    {
+            //        s_gpu[Rand.Next(n)] = Rand.Next();
+            //    }
+            //    GL.Finish();
+            //}));
+            Print("GPU time:", Timing(() =>
             {
                 for (int i = 0; i < 1; i++)
                 {
                     //Print("i =", i);
-                    s_gpu.Data(Shuffled(Range(n)).ToArray());
+                    s_gpu.Random();
                     s_gpu.Sort();
                     Assert(s_gpu.IsSorted());
                 }
                 GL.Finish();
             }));
-            Print(b.TotalSeconds / a.TotalSeconds);
             Print("CPU time:", Timing(() =>
             {
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < 1; i++)
                 {
                     //Print("i =", i);
                     s_cpu.Random();

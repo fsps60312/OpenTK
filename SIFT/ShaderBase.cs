@@ -15,8 +15,37 @@ namespace SIFT
         {
             private MyGL.Program program;
             static Dictionary<(string, int, int, int), MyGL.Program> program_pool = new Dictionary<(string, int, int, int), MyGL.Program>();
+            protected static int max_group_invocations { get; private set; } = -1;
+            protected static int max_group_size_x { get; private set; } = -1;
+            protected static int max_group_size_y { get; private set; } = -1;
+            protected static int max_group_size_z { get; private set; } = -1;
+            protected static int max_group_count_x { get; private set; } = -1;
+            protected static int max_group_count_y { get; private set; } = -1;
+            protected static int max_group_count_z { get; private set; } = -1;
+            protected int group_size_x { get; private set; }
+            protected int group_size_y { get; private set; }
+            protected int group_size_z { get; private set; }
             protected ShaderBase(string source_name, int group_size_x, int group_size_y, int group_size_z)
             {
+                if (max_group_invocations == -1)
+                {
+                    max_group_invocations = MyGL.CheckError(() => GL.GetInteger((GetPName)All.MaxComputeWorkGroupInvocations));
+                    Print("max_group_invocations:", max_group_invocations);
+                    (int, int, int) res;
+                    GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupSize, 0, out res.Item1);
+                    GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupSize, 1, out res.Item2);
+                    GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupSize, 2, out res.Item3);
+                    (max_group_size_x, max_group_size_y, max_group_size_z) = res;
+                    Print("max_group_size:", max_group_size_x, max_group_size_y, max_group_size_z);
+                    GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupCount, 0, out res.Item1);
+                    GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupCount, 1, out res.Item2);
+                    GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupCount, 2, out res.Item3);
+                    (max_group_count_x, max_group_count_y, max_group_count_z) = res;
+                    Print("max_group_count:", max_group_count_x, max_group_count_y, max_group_count_z);
+                }
+                Assert(group_size_x <= max_group_size_x && group_size_y <= max_group_size_y && group_size_z <= max_group_size_z);
+                Assert(group_size_x * group_size_y * group_size_z <= max_group_invocations);
+                (this.group_size_x, this.group_size_y, this.group_size_z) = (group_size_x, group_size_y, group_size_z);
                 if (!program_pool.TryGetValue((source_name, group_size_x, group_size_y, group_size_z), out program))
                 {
                     string source = IO.ReadResource(source_name);
@@ -34,7 +63,7 @@ namespace SIFT
             {
                 program.Use();
                 int array_loc = 0, image_loc = 0;
-                foreach(object o in ps)
+                foreach (object o in ps)
                 {
                     if (o is GPUArray) (o as GPUArray).Bind(array_loc++);
                     else if (o is GPUImage) (o as GPUImage).Bind(image_loc++, TextureAccess.ReadWrite);
@@ -52,6 +81,8 @@ namespace SIFT
                         Assert();
                     }
                 }
+                // https://www.khronos.org/opengl/wiki/Compute_Shader#Limitations
+                Assert(group_count_x <= max_group_count_x && group_count_y <= max_group_count_y && group_count_z <= max_group_count_z);
                 MyGL.CheckError(() => GL.DispatchCompute(group_count_x, group_count_y, group_count_z));
                 //GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits); // seems not needed
                 //MyGL.CheckError(()=> GL.Finish());

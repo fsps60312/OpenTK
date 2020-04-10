@@ -125,7 +125,6 @@
     <EmbeddedResource Include="shaders\wrong\bitonic_sort.glsl" />
     <EmbeddedResource Include="shaders\fill_range.glsl" />
     <EmbeddedResource Include="shaders\fill_value.glsl" />
-    <EmbeddedResource Include="shaders\add_value.glsl" />
     <EmbeddedResource Include="shaders\contains_value.glsl" />
     <EmbeddedResource Include="shaders\is_range.glsl" />
     <EmbeddedResource Include="shaders\is_sorted.glsl" />
@@ -136,6 +135,7 @@
     <EmbeddedResource Include="shaders\is_value.glsl" />
     <EmbeddedResource Include="shaders\elementwise_equal.glsl" />
     <EmbeddedResource Include="shaders\bitonic_tree_pull_2.glsl" />
+    <EmbeddedResource Include="shaders\add_value.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
