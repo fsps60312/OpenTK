@@ -136,6 +136,7 @@
     <EmbeddedResource Include="shaders\elementwise_equal.glsl" />
     <EmbeddedResource Include="shaders\bitonic_tree_pull_2.glsl" />
     <EmbeddedResource Include="shaders\add_value.glsl" />
+    <EmbeddedResource Include="shaders\bitonic_merge_inplace.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
