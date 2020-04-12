@@ -22,13 +22,14 @@ int search(const in int offset_a, const in int n_a, const in int offset_b, const
 }
 
 int merge2(const in int offset, const in int i, const in int n) {
-	const int mid = 1 << (level - 1);
-	if (mid >= n) return buf_s[offset + i];
+	const int n_a = 1 << (level - 1);
+	if (n_a >= n) return buf_s[offset + i];
+	const int n_b = n - n_a;
 //	buf_debug[offset + i] = 0;
-	const int a1 = search(offset, mid, offset + mid, n - mid, i); // b1 = i - a1
-	const int a2 = search(offset, mid, offset + mid, n - mid, i + 1);
+	const int a = search(offset, n_a, offset + n_a, n - n_a, i); // b1 = i - a1
+	const int b = i - a;
 //	buf_debug[offset + i] = 0;
-	return a1 < a2 ? buf_s[offset + a1] : buf_s[offset + mid + (i - a1)];
+	return a < n_a && (b >= n_b || buf_s[offset + a] <= buf_s[offset + n_a + b]) ? buf_s[offset + a] : buf_s[offset + n_a + b];
 //	buf_debug[offset + i] = i * 100 + a1*10 + a2;
 }
 
