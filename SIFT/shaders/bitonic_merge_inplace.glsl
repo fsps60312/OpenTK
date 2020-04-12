@@ -9,23 +9,20 @@ uniform int start_level;
 uniform int level;
 uniform int reverse;
 
-void swap(const in int i, const in int j) {
-	int v = buf_s[i];
-	buf_s[i] = buf_s[j];
-	buf_s[j] = v;
-}
-
 void merge2(const in int offset, const in int i, const in int rigt_bound) { // offset <<2^level>> n
 	const int n = 1 << level; // [1 ~ n/2-1][n/2 ~ n-1]
 	const int j = reverse == 1 ? n - 1 - i : i ^ (1 << (level - 1));
 	if (j < i) { // j < i
-		if (buf_s[offset + j] > buf_s[offset + i]) { // need exchange
-			swap(offset + j, offset + i);
+		const int vj = buf_s[offset + j], vi = buf_s[offset + i];
+		if (vj > vi) { // need exchange
+			buf_s[offset + j] = vi;
+			buf_s[offset + i] = vj;
 		}
 	}
 }
 
 void merge(const in int offset, const in int i, const in int n) { // offset >> offset + i >> offset + n
+//	if (((i >> (level - 1)) & 1) != 1) return;
 	const int left_bound = i >> level << level;
 	merge2(offset + left_bound, i - left_bound, n - left_bound);
 }
