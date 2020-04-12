@@ -4,7 +4,6 @@ layout(std430,  binding = 0) readonly buffer s    { int buf_s[]; };
 layout(std430,  binding = 1) readonly buffer l    { int buf_l[]; };
 layout(std430,  binding = 2) readonly buffer r    { int buf_r[]; };
 layout(std430,  binding = 3) writeonly buffer o    { int buf_o[]; };
-//layout(std430,  binding = 4) writeonly buffer debug    { int buf_debug[]; };
 
 uniform uint global_invocation_id_x_offset;
 uniform int level;
@@ -13,15 +12,12 @@ int search(const in int offset_a, const in int n_a, const in int offset_b, const
 	// 0 <= a <= n_a, 0 <= b <= n_b, a == i - b
 	int a_l = max(0, a_plus_b - n_b), a_r = min(a_plus_b, n_a);
 	while (a_l < a_r) {
-		const int a = (a_l + a_r + 1) >> 1;
+		const int a = (a_l + a_r) >> 1;
 		const int b = a_plus_b - a;
-		if (a - 1 < 0 || b >= n_b || buf_s[offset_a + a - 1] <= buf_s[offset_b + b]) a_l = a;
-		else a_r = a - 1;
+		// a up if: s_a[a] <= s_b[b - 1]
+		if (b - 1 >= 0 && buf_s[offset_a + a] <= buf_s[offset_b + b - 1]) a_l = a + 1;
+		else a_r = a;
 	}
-	// goal: s_a[a - 1] <= s_b[b]
-	// if (s_a[0] <= s_b[0]): (1, 0)
-	// else:                  (0, 1)
-//	if (buf_s[offset_a + a_r] < buf_s[offset_b + (a_plus_b - a_r)]) buf_o[offset_a + a_plus_b] = 1;
 	return a_r;
 }
 
