@@ -18,7 +18,7 @@ namespace SIFT
             //object a = new int();
             //Console.WriteLine(a.GetType());
             ////return;
-            int n = 10000000;
+            int n = 1000000;
             GPUIntArray s_gpu = new GPUIntArray(n);
             List<int> s_cpu = new List<int>(n);for (int i = 0; i < n; i++) s_cpu.Add(0);
 
@@ -41,6 +41,7 @@ namespace SIFT
                 {
                     //Print("i =", i);
                     s_gpu.Random();
+                    s_gpu.Data(Shuffled(Range(n)).ToArray());
                     s_gpu.Sort();
                     Assert(s_gpu.IsSorted());
                 }

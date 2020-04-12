@@ -53,18 +53,20 @@ namespace SIFT
             #region Sort
             public void Sort()
             {
-                new InPlaceParallelBitonicSorter(this).Sort();
+                new ParallelMergeSorter(this).Sort();
             }
             class ParallelMergeSorter
             {
                 GPUIntArray value, output;
                 GPUIntArray left, rigt;
+                //GPUIntArray debug;
                 public ParallelMergeSorter(GPUIntArray array)
                 {
                     this.value = array;
                     output = new GPUIntArray(array.Length);
                     left = new GPUIntArray(array.Length);
                     rigt = new GPUIntArray(array.Length);
+                    //debug = new GPUIntArray(array.Length);
                 }
                 public void Sort()
                 {
@@ -72,12 +74,15 @@ namespace SIFT
                     if (n <= 1) return;
                     int num_levels = (__builtin_popcount(n) == 1 ? 31 : 32) - __builtin_clz(n);
                     left.Value(0); rigt.Value(n - 1);
+                    //Print(value);
                     for (int level = 1; level <= num_levels; level++)
                     {
                         new Shader("SIFT.shaders.merge_sort.glsl").QueueForRunInSequence(n,
                             ("level", level),
                             value, left, rigt, output);
                         value.Swap(output);
+                        //Print(value);
+                        //Print(debug);
                     }
                 }
             }
