@@ -55,11 +55,65 @@ namespace SIFT
             {
                 new ParallelMergeSorter(this).Sort();
             }
-            class ParallelMergeSorter
+            class ParallelAdaptiveMergeSorter // n log n
             {
                 GPUIntArray value, output;
                 GPUIntArray left, rigt;
                 GPUIntArray a;
+                public ParallelAdaptiveMergeSorter(GPUIntArray array)
+                {
+                    this.value = array;
+                    output = new GPUIntArray(array.Length);
+                    left = new GPUIntArray(array.Length);
+                    rigt = new GPUIntArray(array.Length);
+                    a = new GPUIntArray(array.Length);
+                }
+                public void Sort()
+                {
+                    int n = value.Length;
+                    if (n <= 1) return;
+                    int max_level = (__builtin_popcount(n) == 1 ? 31 : 32) - __builtin_clz(n);
+                    left.Value(0); rigt.Value(n - 1);
+                    //Print(value);
+                    for (int level = 1; level <= max_level; level++)
+                    {
+                        int total_execute_cnt = 0;
+                        for (int stride_level = max_level; stride_level >= 0; stride_level--)
+                        {
+                            // (1 << sl) - 1, 3(1 << sl) - 1, 5(1 << sl) - 1, 7(1 << sl) - 1, ...
+                            int offset = (1 << stride_level) - 1;
+                            //int stride = 1 << stride_level << 1;
+                            // offset + ? * stride <= n - 1
+                            // ? * stride <= n - 1 - offset
+                            int execute_cnt = ((n - 1 - offset) >> stride_level >> 1) + 1;
+                            total_execute_cnt += execute_cnt;
+
+                            //OpenTK.Graphics.OpenGL.GL.Finish();
+                            //Print(Timing(() =>
+                            //{
+                            new Shader("SIFT.shaders.merge_sort_write_a.glsl").QueueForRunInSequence(execute_cnt,
+                            ("level", level),
+                            ("stride_level", stride_level),
+                            value, left, rigt, a);
+                            //    OpenTK.Graphics.OpenGL.GL.Finish();
+                            //}));
+                            //Print(a);
+                        }
+                        //Print();
+                        Assert(total_execute_cnt == n);
+                        new Shader("SIFT.shaders.merge_sort_read_a_write_o.glsl").QueueForRunInSequence(n,
+                            ("level", level),
+                            value, left, rigt, a, output);
+                        value.Swap(output);
+                        //Print(value);
+                        //Print(debug);
+                    }
+                }
+            }
+            class ParallelMergeSorter // n log^2 n
+            {
+                GPUIntArray value, output;
+                GPUIntArray left, rigt;
                 //GPUIntArray debug;
                 public ParallelMergeSorter(GPUIntArray array)
                 {
@@ -67,7 +121,6 @@ namespace SIFT
                     output = new GPUIntArray(array.Length);
                     left = new GPUIntArray(array.Length);
                     rigt = new GPUIntArray(array.Length);
-                    a = new GPUIntArray(array.Length);
                     //debug = new GPUIntArray(array.Length);
                 }
                 public void Sort()
@@ -79,54 +132,21 @@ namespace SIFT
                     //Print(value);
                     for (int level = 1; level <= max_level; level++)
                     {
-                        if (false) // n log^2 n
-                        {
-                            //OpenTK.Graphics.OpenGL.GL.Finish();
-                            //Print(Timing(() =>
-                            //{
-                                new Shader("SIFT.shaders.merge_sort.glsl").QueueForRunInSequence(n,
-                                ("level", level),
-                                value, left, rigt, output);
-                            //    OpenTK.Graphics.OpenGL.GL.Finish();
-                            //}));
-                        }
-                        else // n log n
-                        {
-                            int total_execute_cnt = 0;
-                            for (int stride_level = max_level; stride_level >= 0; stride_level--)
-                            {
-                                // (1 << sl) - 1, 3(1 << sl) - 1, 5(1 << sl) - 1, 7(1 << sl) - 1, ...
-                                int offset = (1 << stride_level) - 1;
-                                //int stride = 1 << stride_level << 1;
-                                // offset + ? * stride <= n - 1
-                                // ? * stride <= n - 1 - offset
-                                int execute_cnt = ((n - 1 - offset) >> stride_level >> 1) + 1;
-                                total_execute_cnt += execute_cnt;
-
-                                //OpenTK.Graphics.OpenGL.GL.Finish();
-                                //Print(Timing(() =>
-                                //{
-                                    new Shader("SIFT.shaders.merge_sort_write_a.glsl").QueueForRunInSequence(execute_cnt,
-                                    ("level", level),
-                                    ("stride_level", stride_level),
-                                    value, left, rigt, a);
-                                //    OpenTK.Graphics.OpenGL.GL.Finish();
-                                //}));
-                                //Print(a);
-                            }
-                            //Print();
-                            Assert(total_execute_cnt == n);
-                            new Shader("SIFT.shaders.merge_sort_read_a_write_o.glsl").QueueForRunInSequence(n,
-                                ("level", level),
-                                value, left, rigt, a, output);
-                        }
+                        //OpenTK.Graphics.OpenGL.GL.Finish();
+                        //Print(Timing(() =>
+                        //{
+                            new Shader("SIFT.shaders.merge_sort.glsl").QueueForRunInSequence(n,
+                            ("level", level),
+                            value, left, rigt, output);
+                        //    OpenTK.Graphics.OpenGL.GL.Finish();
+                        //}));
                         value.Swap(output);
                         //Print(value);
                         //Print(debug);
                     }
                 }
             }
-            class InPlaceParallelBitonicSorter
+            class InPlaceParallelBitonicSorter // n log^2 n
             {
                 GPUIntArray value;
                 GPUIntArray left, rigt;
@@ -155,7 +175,7 @@ namespace SIFT
                     }
                 }
             }
-            class ParallelBitonicSorter
+            class ParallelBitonicSorter // n log^2 n
             {
                 GPUIntArray value;
                 GPUIntArray left, rigt, output;
@@ -187,10 +207,10 @@ namespace SIFT
                     }
                 }
             }
-            class ParallelAdaptiveBitonicSorter
+            class TowardParallelAdaptiveBitonicSorter // n log n
             {
                 GPUIntArray value, left, rigt, roots, spares;
-                public ParallelAdaptiveBitonicSorter(GPUIntArray array)
+                public TowardParallelAdaptiveBitonicSorter(GPUIntArray array)
                 {
                     int n = array.Length;
                     Assert(__builtin_popcount(n) == 1);
