@@ -8,6 +8,21 @@ layout(std430,  binding = 3) writeonly buffer o    { int buf_o[]; };
 uniform uint global_invocation_id_x_offset;
 uniform int level;
 
+#if 1
+int search(const in int offset_a, const in int n_a, const in int offset_b, const in int n_b, in int a_plus_b) { // offset >> offset + a >> offset + a + b
+	// 0 <= a <= n_a, 0 <= b <= n_b, a == i - b
+	int a_l = offset_a + max(0, a_plus_b - n_b), a_r = offset_a + min(n_a, a_plus_b), a, b_minus_1;
+//	return a_r; // with this: 2.47s, without this: 4.11s
+	a_plus_b = a_plus_b - 1 + offset_a + offset_b;
+	while (a_l < a_r) { // this takes 1.64s
+		a = (a_l + a_r) >> 1;
+		b_minus_1 = a_plus_b - a;
+		if (b_minus_1 >= offset_b && buf_s[a] <= buf_s[b_minus_1]) a_l = ++a;
+		else a_r = a;
+	}
+	return a_r - offset_a;
+}
+#else
 int search(const in int offset_a, const in int n_a, const in int offset_b, const in int n_b, const in int a_plus_b) { // offset >> offset + a >> offset + a + b
 	// 0 <= a <= n_a, 0 <= b <= n_b, a == i - b
 	int a_l = max(0, a_plus_b - n_b), a_r = min(n_a, a_plus_b);
@@ -20,7 +35,7 @@ int search(const in int offset_a, const in int n_a, const in int offset_b, const
 	}
 	return a_r;
 }
-
+#endif
 int merge2(const in int offset, const in int i, const in int n) {
 	const int n_a = 1 << (level - 1);
 //	return offset + i; // with this: 1.354s

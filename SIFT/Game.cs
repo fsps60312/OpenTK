@@ -42,9 +42,14 @@ namespace SIFT
                 {
                     //Print("i =", i);
                     s_gpu.Random();
+                    //s_gpu.Data(Shuffled(Range(n)).ToArray());
                     s_gpu.Sort();
                     //s_gpu.Value(0);
-                    //Assert(s_gpu.IsSorted());
+                    //if(!s_gpu.IsSorted())
+                    //{
+                    //    Print(s_gpu);
+                    //}
+                    Assert(s_gpu.IsSorted());
                 }
                 GL.Finish();
             }));
