@@ -18,7 +18,8 @@ namespace SIFT
             //object a = new int();
             //Console.WriteLine(a.GetType());
             ////return;
-            int n = 10000;
+            int n = 100000000;
+            int loop_n = 1; // 60 * 32;
             GPUIntArray s_gpu = new GPUIntArray(n);
             List<int> s_cpu = new List<int>(n);for (int i = 0; i < n; i++) s_cpu.Add(0);
 
@@ -37,18 +38,19 @@ namespace SIFT
             //}));
             Print("GPU time:", Timing(() =>
             {
-                for (int i = 0; i < 60 * 32; i++)
+                for (int i = 0; i < loop_n; i++)
                 {
                     //Print("i =", i);
                     s_gpu.Random();
                     s_gpu.Sort();
-                    Assert(s_gpu.IsSorted());
+                    //s_gpu.Value(0);
+                    //Assert(s_gpu.IsSorted());
                 }
                 GL.Finish();
             }));
             Print("CPU time:", Timing(() =>
             {
-                for (int i = 0; i < 60 * 32; i++)
+                for (int i = 0; i < loop_n; i++)
                 {
                     //Print("i =", i);
                     s_cpu.Random();
