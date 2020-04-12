@@ -58,7 +58,7 @@ namespace SIFT
             class ParallelMergeSorter
             {
                 GPUIntArray value, output;
-                GPUIntArray left, rigt;
+                GPUIntArray left, rigt, a;
                 //GPUIntArray debug;
                 public ParallelMergeSorter(GPUIntArray array)
                 {
@@ -66,6 +66,7 @@ namespace SIFT
                     output = new GPUIntArray(array.Length);
                     left = new GPUIntArray(array.Length);
                     rigt = new GPUIntArray(array.Length);
+                    a = new GPUIntArray(array.Length);
                     //debug = new GPUIntArray(array.Length);
                 }
                 public void Sort()
@@ -77,9 +78,15 @@ namespace SIFT
                     //Print(value);
                     for (int level = 1; level <= num_levels; level++)
                     {
-                        new Shader("SIFT.shaders.merge_sort.glsl").QueueForRunInSequence(n,
+                        //new Shader("SIFT.shaders.merge_sort.glsl").QueueForRunInSequence(n,
+                        //    ("level", level),
+                        //    value, left, rigt, output);
+                        new Shader("SIFT.shaders.merge_sort_write_a.glsl").QueueForRunInSequence(n,
                             ("level", level),
-                            value, left, rigt, output);
+                            value, left, rigt, a);
+                        new Shader("SIFT.shaders.merge_sort_read_a_write_o.glsl").QueueForRunInSequence(n,
+                            ("level", level),
+                            value, left, rigt, a, output);
                         value.Swap(output);
                         //Print(value);
                         //Print(debug);
