@@ -55,6 +55,32 @@ namespace SIFT
             {
                 new InPlaceParallelBitonicSorter(this).Sort();
             }
+            class ParallelMergeSorter
+            {
+                GPUIntArray value, output;
+                GPUIntArray left, rigt;
+                public ParallelMergeSorter(GPUIntArray array)
+                {
+                    this.value = array;
+                    output = new GPUIntArray(array.Length);
+                    left = new GPUIntArray(array.Length);
+                    rigt = new GPUIntArray(array.Length);
+                }
+                public void Sort()
+                {
+                    int n = value.Length;
+                    if (n <= 1) return;
+                    int num_levels = (__builtin_popcount(n) == 1 ? 31 : 32) - __builtin_clz(n);
+                    left.Value(0); rigt.Value(n - 1);
+                    for (int level = 1; level <= num_levels; level++)
+                    {
+                        new Shader("SIFT.shaders.merge_sort.glsl").QueueForRunInSequence(n,
+                            ("level", level),
+                            value, left, rigt, output);
+                        value.Swap(output);
+                    }
+                }
+            }
             class InPlaceParallelBitonicSorter
             {
                 GPUIntArray value;
