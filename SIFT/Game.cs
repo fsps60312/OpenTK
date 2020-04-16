@@ -36,7 +36,8 @@ namespace SIFT
             //    }
             //    GL.Finish();
             //}));
-            Print("GPU time:", Timing(() =>
+            TimeSpan a, b;
+            Print("GPU time:",a= Timing(() =>
             {
                 for (int i = 0; i < loop_n; i++)
                 {
@@ -45,7 +46,7 @@ namespace SIFT
                     //s_gpu.Data(Shuffled(Range(n)).ToArray());
                     s_gpu.Sort();
                     //s_gpu.Value(0);
-                    //if(!s_gpu.IsSorted())
+                    //if (!s_gpu.IsSorted())
                     //{
                     //    Print(s_gpu);
                     //}
@@ -53,7 +54,7 @@ namespace SIFT
                 }
                 GL.Finish();
             }));
-            Print("CPU time:", Timing(() =>
+            Print("CPU time:",b= Timing(() =>
             {
                 for (int i = 0; i < loop_n; i++)
                 {
@@ -63,6 +64,7 @@ namespace SIFT
                     Assert(s_cpu.IsSorted());
                 }
             }));
+            Print("speedup =", b.TotalMilliseconds / a.TotalMilliseconds);
             Print("finish");
         }
         protected override void Update(double secs)

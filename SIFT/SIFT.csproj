@@ -140,6 +140,7 @@
     <EmbeddedResource Include="shaders\merge_sort.glsl" />
     <EmbeddedResource Include="shaders\merge_sort_write_a.glsl" />
     <EmbeddedResource Include="shaders\merge_sort_read_a_write_o.glsl" />
+    <EmbeddedResource Include="shaders\merge_batch_sort.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

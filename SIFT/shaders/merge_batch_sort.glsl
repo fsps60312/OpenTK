@@ -7,6 +7,7 @@ layout(std430,  binding = 3) writeonly buffer o    { int buf_o[]; };
 
 uniform uint global_invocation_id_x_offset;
 uniform int level;
+uniform int stride;
 
 #if 0
 int search(const in int offset_a, const in int n_a, const in int offset_b, const in int n_b, in int a_plus_b) { // offset >> offset + a >> offset + a + b
@@ -49,28 +50,27 @@ int search(const in int offset_a, const in int n_a, const in int offset_b, const
 	return a_r;
 }
 #endif
-int merge2(const in int offset, const in int i, const in int n) {
-	const int n_a = min(n, 1 << (level - 1));
-//	return offset + i; // with this: 1.354s
-//	if (n_a >= n) return offset + i;
-	const int n_b = n - n_a;
-//	return offset + i; // with this: 1.381s
-	const int a = search(offset, n_a, offset + n_a, n_b, i); // b1 = i - a1
-	const int b = i - a;
-//	return offset + i; // with this: 37.91s // why??
-	return offset + (a < n_a && (b >= n_b || buf_s[offset + a] <= buf_s[offset + n_a + b]) ? a : n_a + b);
-}
-
-int merge(const in int offset, const in int i, const in int n) { // offset >> offset + i >> offset + n
-//	return offset + i; // with this: 1.366s
-	const int left_bound = i >> level << level;
-	return merge2(offset + left_bound, i - left_bound, min(n - left_bound, 1 << level));
-}
 
 void main() {
 	// Get Index in Global Work Group
-	const int i = int(global_invocation_id_x_offset + gl_GlobalInvocationID.x);
+	int i = int(global_invocation_id_x_offset + gl_GlobalInvocationID.x) * stride;
 	if (i >= buf_s.length()) return;
-	const int l = buf_l[i], r = buf_r[i];
-	buf_o[i] = buf_s[merge(l, i - l, r - l + 1)];
+	const int ir = min(buf_s.length() - 1, i + stride - 1);
+	int l0 = buf_l[i], r0 = buf_r[i];
+	int l1 = l0 + ((i - l0) >> level << level), n1 = min(r0 - l1 + 1, 1 << level);
+	int n_a = min(n1, 1 << (level - 1)), n_b = n1 - n_a;
+	int a = search(l1, n_a, l1 + n_a, n_b, i - l1);
+	while (true) {
+		int b = i - l1 - a;
+		buf_o[i++] = buf_s[l1 + (a < n_a && (b >= n_b || buf_s[l1 + a] <= buf_s[l1 + n_a + b]) ? a++ : n_a + b)];
+		if (i > ir) return;
+		if (i > r0) {
+			l0 = buf_l[i], r0 = buf_r[i];
+		}
+		if (i >= l1 + n1) {
+			l1 = l0 + ((i - l0) >> level << level), n1 = min(r0 - l1 + 1, 1 << level);
+			n_a = min(n1, 1 << (level - 1)), n_b = n1 - n_a;
+			a = 0;
+		}
+	}
 }

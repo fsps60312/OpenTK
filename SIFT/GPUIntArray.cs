@@ -53,7 +53,7 @@ namespace SIFT
             #region Sort
             public void Sort()
             {
-                new ParallelMergeSorter(this).Sort();
+                new ParallelBatchMergeSorter(this).Sort();
             }
             class ParallelAdaptiveMergeSorter // n log n
             {
@@ -104,6 +104,46 @@ namespace SIFT
                         new Shader("SIFT.shaders.merge_sort_read_a_write_o.glsl").QueueForRunInSequence(n,
                             ("level", level),
                             value, left, rigt, a, output);
+                        value.Swap(output);
+                        //Print(value);
+                        //Print(debug);
+                    }
+                }
+            }
+            class ParallelBatchMergeSorter // n log^2 n
+            {
+                const int gpu_execute_unit_count = 100;
+                GPUIntArray value, output;
+                GPUIntArray left, rigt;
+                //GPUIntArray debug;
+                public ParallelBatchMergeSorter(GPUIntArray array)
+                {
+                    this.value = array;
+                    output = new GPUIntArray(array.Length);
+                    left = new GPUIntArray(array.Length);
+                    rigt = new GPUIntArray(array.Length);
+                    //debug = new GPUIntArray(array.Length);
+                }
+                public void Sort()
+                {
+                    int n = value.Length;
+                    if (n <= 1) return;
+                    int max_level = (__builtin_popcount(n) == 1 ? 31 : 32) - __builtin_clz(n);
+                    left.Value(0); rigt.Value(n - 1);
+                    //Print(value);
+                    int stride = 16;// Math.Max(1, n / Shader.default_group_size_x / gpu_execute_unit_count);
+                    //Print("stride =", stride);
+                    for (int level = 1; level <= max_level; level++)
+                    {
+                        //OpenTK.Graphics.OpenGL.GL.Finish();
+                        //Print(Timing(() =>
+                        //{
+                        new Shader("SIFT.shaders.merge_batch_sort.glsl").QueueForRunInSequence((n + stride - 1) / stride,
+                        ("level", level),
+                        ("stride", stride),
+                        value, left, rigt, output);
+                        //    OpenTK.Graphics.OpenGL.GL.Finish();
+                        //}));
                         value.Swap(output);
                         //Print(value);
                         //Print(debug);
