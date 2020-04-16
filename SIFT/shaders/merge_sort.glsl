@@ -61,16 +61,11 @@ int merge2(const in int offset, const in int i, const in int n) {
 	return offset + (a < n_a && (b >= n_b || buf_s[offset + a] <= buf_s[offset + n_a + b]) ? a : n_a + b);
 }
 
-int merge(const in int offset, const in int i, const in int n) { // offset >> offset + i >> offset + n
-//	return offset + i; // with this: 1.366s
-	const int left_bound = i >> level << level;
-	return merge2(offset + left_bound, i - left_bound, min(n - left_bound, 1 << level));
-}
-
 void main() {
 	// Get Index in Global Work Group
 	const int i = int(global_invocation_id_x_offset + gl_GlobalInvocationID.x);
 	if (i >= buf_s.length()) return;
-	const int l = buf_l[i], r = buf_r[i];
-	buf_o[i] = buf_s[merge(l, i - l, r - l + 1)];
+	int l = buf_l[i], r = buf_r[i];
+	l = l + ((i - l) >> level << level);
+	buf_o[i] = buf_s[merge2(l, i - l, min(1 << level, r - l + 1))];
 }

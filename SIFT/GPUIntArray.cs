@@ -53,7 +53,7 @@ namespace SIFT
             #region Sort
             public void Sort()
             {
-                new ParallelBatchMergeSorter(this).Sort();
+                new ParallelMergeSorter(this).Sort();
             }
             class ParallelAdaptiveMergeSorter // n log n
             {
